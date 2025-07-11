@@ -226,8 +226,17 @@ with tab_qsofa_2t:
             st.session_state.t2_qsofa2t = t2
 
         # --- Metrics and plots (Box 2) ---
-        row_t1 = metrics_df[np.isclose(metrics_df["Threshold"], t1)].iloc[0]
-        row_t2 = metrics_df[np.isclose(metrics_df["Threshold"], t2)].iloc[0]
+        row_t1_match = metrics_df[np.isclose(metrics_df["Threshold"], t1)]
+        if row_t1_match.empty:
+            st.error(f"No matching threshold found for T1 = {t1}")
+            st.stop()
+        row_t1 = row_t1_match.iloc[0]
+
+        row_t2_match = metrics_df[np.isclose(metrics_df["Threshold"], t2)]
+        if row_t2_match.empty:
+            st.error(f"No matching threshold found for T2 = {t2}")
+            st.stop()
+        row_t2 = row_t2_match.iloc[0]
         col_spacer1, col_metrics, col_roc, col_pr, col_prev, col_spacer2 = st.columns([0.05, 0.35, 0.2, 0.2, 0.2, 0.05])
         with col_metrics:
             st.markdown("**Metrics at T1 and T2**")
@@ -393,8 +402,17 @@ with tab_news_2t:
             st.session_state.t2_news2t = t2
 
         # --- Metrics and plots (Box 2) ---
-        row_t1 = metrics_df[np.isclose(metrics_df["Threshold"], t1)].iloc[0]
-        row_t2 = metrics_df[np.isclose(metrics_df["Threshold"], t2)].iloc[0]
+        row_t1_match = metrics_df[np.isclose(metrics_df["Threshold"], t1)]
+        if row_t1_match.empty:
+            st.error(f"No matching threshold found for T1 = {t1}")
+            st.stop()
+        row_t1 = row_t1_match.iloc[0]
+
+        row_t2_match = metrics_df[np.isclose(metrics_df["Threshold"], t2)]
+        if row_t2_match.empty:
+            st.error(f"No matching threshold found for T2 = {t2}")
+            st.stop()
+        row_t2 = row_t2_match.iloc[0]
         col_spacer1, col_metrics, col_roc, col_pr, col_prev, col_spacer2 = st.columns([0.05, 0.35, 0.2, 0.2, 0.2, 0.05])
         with col_metrics:
             st.markdown("**Metrics at T1 and T2**")
