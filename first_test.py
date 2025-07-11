@@ -2,7 +2,8 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve, precision_recall_curve, confusion_matrix, classification_report, roc_auc_score, average_precision_score
+from sklearn.metrics import roc_curve, precision_recall_curve, confusion_matrix, roc_auc_score, average_precision_score
+
 st.set_page_config(page_title="Postoperative Predictive Performance Visualization", layout="wide")
 
 # ---- Generate Simulated Data ----
@@ -29,7 +30,7 @@ def compute_metrics(y_true, y_scores, threshold):
     auc = roc_auc_score(y_true, y_scores)
     ap = average_precision_score(y_true, y_scores)
 
-    return pd.DataFrame([{
+    metrics = {
         "N": N,
         "Label Prevalence": label_prev,
         "Prediction Prevalence": pred_prev,
@@ -41,39 +42,8 @@ def compute_metrics(y_true, y_scores, threshold):
         "F1 Score": f1,
         "ROC AUC": auc,
         "Average Precision": ap
-    }]).T.rename(columns={0: "Value"}).round(3)
-
-# ---- Plot ROC and PR ----
-def plot_curves(y_true, y_scores, threshold):
-    fpr, tpr, roc_thresh = roc_curve(y_true, y_scores)
-    precision, recall, pr_thresh = precision_recall_curve(y_true, y_scores)
-
-    # ROC
-    fig_roc, ax_roc = plt.subplots()
-    ax_roc.plot(fpr, tpr, label="ROC Curve")
-    point_fpr, point_tpr, _ = roc_curve(y_true, y_scores >= threshold)
-    ax_roc.plot(point_fpr[1], point_tpr[1], 'ro', label=f"Threshold = {threshold:.2f}")
-    ax_roc.set_xlabel("False Positive Rate")
-    ax_roc.set_ylabel("True Positive Rate")
-    ax_roc.set_title("ROC Curve")
-    ax_roc.legend()
-
-    # PR
-    fig_pr, ax_pr = plt.subplots()
-    ax_pr.plot(recall, precision, label="PR Curve")
-    pr_point = ((y_scores >= threshold).astype(int))
-    tp = np.sum((pr_point == 1) & (y_true == 1))
-    fp = np.sum((pr_point == 1) & (y_true == 0))
-    fn = np.sum((pr_point == 0) & (y_true == 1))
-    precision_point = tp / (tp + fp) if (tp + fp) > 0 else 0
-    recall_point = tp / (tp + fn) if (tp + fn) > 0 else 0
-    ax_pr.plot(recall_point, precision_point, 'ro', label=f"Threshold = {threshold:.2f}")
-    ax_pr.set_xlabel("Recall")
-    ax_pr.set_ylabel("Precision")
-    ax_pr.set_title("Precision-Recall Curve")
-    ax_pr.legend()
-
-    return fig_roc, fig_pr
+    }
+    return metrics
 
 # ---- Metric Descriptions ----
 metric_descriptions = {
@@ -90,6 +60,55 @@ metric_descriptions = {
     "Average Precision": "The area under the precision-recall curve, summarizing the tradeoff between precision and recall at different thresholds."
 }
 
+# ---- Plot ROC and PR ----
+def plot_curves(y_true, y_scores, threshold):
+    fpr, tpr, _ = roc_curve(y_true, y_scores)
+    precision, recall, _ = precision_recall_curve(y_true, y_scores)
+
+    # ROC
+    fig_roc, ax_roc = plt.subplots()
+    ax_roc.plot(fpr, tpr, label="ROC Curve")
+    pred = (y_scores >= threshold).astype(int)
+    roc_point = [np.mean(pred[y_true == 0]), np.mean(pred[y_true == 1])]
+    ax_roc.plot(roc_point[0], roc_point[1], 'ro')
+    ax_roc.set_xlabel("False Positive Rate")
+    ax_roc.set_ylabel("True Positive Rate")
+    ax_roc.set_title("ROC Curve")
+    ax_roc.grid(True)
+
+    # PR
+    fig_pr, ax_pr = plt.subplots()
+    ax_pr.plot(recall, precision, label="PR Curve")
+    tp = np.sum((pred == 1) & (y_true == 1))
+    fp = np.sum((pred == 1) & (y_true == 0))
+    fn = np.sum((pred == 0) & (y_true == 1))
+    prec_point = tp / (tp + fp) if (tp + fp) > 0 else 0
+    rec_point = tp / (tp + fn) if (tp + fn) > 0 else 0
+    ax_pr.plot(rec_point, prec_point, 'ro')
+    ax_pr.set_xlabel("Recall")
+    ax_pr.set_ylabel("Precision")
+    ax_pr.set_title("PR Curve")
+    ax_pr.grid(True)
+
+    return fig_roc, fig_pr
+
+# ---- Prediction Prevalence Bar ----
+def draw_prevalence_bar(pred_prev):
+    fig, ax = plt.subplots(figsize=(1, 4))
+    high_pct = pred_prev
+    low_pct = 1 - high_pct
+
+    ax.bar(0, high_pct, color='green', label='High', width=0.5)
+    ax.bar(0, low_pct, bottom=high_pct, color='lightcoral', label='Low', width=0.5)
+
+    ax.text(0, high_pct / 2, f"High\n{high_pct*100:.1f}%", color='white', ha='center', va='center', fontsize=10)
+    ax.text(0, high_pct + low_pct / 2, f"Low\n{low_pct*100:.1f}%", color='white', ha='center', va='center', fontsize=10)
+
+    ax.set_xlim(-0.5, 0.5)
+    ax.set_ylim(0, 1)
+    ax.axis('off')
+    return fig
+
 # ---- Layout ----
 st.title("📊 Postoperative Predictive Performance Visualization")
 
@@ -99,23 +118,34 @@ for tab, label in zip([tab1, tab2], ["sepsis", "bleeding"]):
     with tab:
         st.subheader(f"Model Performance for Postoperative {label.capitalize()}")
 
-        # Load data
         y_true, y_scores = generate_fake_data(seed=42 if label == "sepsis" else 24)
 
-        # Threshold slider
-        threshold = st.slider(f"Select probability threshold for {label} prediction", 0.0, 1.0, 0.5, 0.01)
+        with st.container():
+            st.markdown(
+                "<div style='max-width:900px;margin:auto;'>", unsafe_allow_html=True
+            )
 
-        # Plot ROC and PR side by side
-        col1, col2 = st.columns(2)
-        fig_roc, fig_pr = plot_curves(y_true, y_scores, threshold)
-        with col1:
-            st.pyplot(fig_roc)
-        with col2:
-            st.pyplot(fig_pr)
+            threshold = st.slider(f"Select probability threshold for {label} prediction", 0.0, 1.0, 0.5, 0.01)
 
-        # Metrics Table
-        metrics_df = compute_metrics(y_true, y_scores, threshold)
-        for metric, row in metrics_df.iterrows():
-            with st.expander(metric):
-                st.markdown(f"**{metric}**: {row['Value']}")
-                st.write(metric_descriptions.get(metric, "No description available."))
+            # Layout with three columns: ROC, PR, and prevalence bar
+            col1, col2, col3 = st.columns([2, 2, 1])
+            fig_roc, fig_pr = plot_curves(y_true, y_scores, threshold)
+
+            with col1:
+                st.pyplot(fig_roc)
+            with col2:
+                st.pyplot(fig_pr)
+            with col3:
+                pred_prev = np.mean(y_scores >= threshold)
+                st.pyplot(draw_prevalence_bar(pred_prev))
+
+            # Metrics table
+            metrics = compute_metrics(y_true, y_scores, threshold)
+            metric_table = pd.DataFrame([
+                {"Metric": k, "Description": metric_descriptions.get(k, ""), "Value": round(v, 3)}
+                for k, v in metrics.items()
+            ])
+            st.markdown("### Classification Metrics")
+            st.dataframe(metric_table, use_container_width=True)
+
+            st.markdown("</div>", unsafe_allow_html=True)
