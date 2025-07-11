@@ -137,7 +137,8 @@ with tab_news:
                 min_value=float(min(threshold_values)),
                 max_value=float(max(threshold_values)),
                 value=float(threshold_values[0]),
-                step=step_val
+                step=step_val,
+                key="threshold_news"
             )
 
         # --- Metrics and plots (Box 2) ---
@@ -187,7 +188,8 @@ with tab_gbs:
                 min_value=float(min(threshold_values)),
                 max_value=float(max(threshold_values)),
                 value=float(threshold_values[0]),
-                step=step_val
+                step=step_val,
+                key="threshold_gbs"
             )
 
         # --- Metrics and plots (Box 2) ---
@@ -237,7 +239,8 @@ with tab_news_custom:
                 min_value=float(min(threshold_values)),
                 max_value=float(max(threshold_values)),
                 value=float(threshold_values[0]),
-                step=step_val
+                step=step_val,
+                key="threshold_news_custom"
             )
 
         # --- Metrics and plots (Box 2) ---
@@ -287,7 +290,8 @@ with tab_gbs_custom:
                 min_value=float(min(threshold_values)),
                 max_value=float(max(threshold_values)),
                 value=float(threshold_values[0]),
-                step=step_val
+                step=step_val,
+                key="threshold_gbs_custom"
             )
 
         # --- Metrics and plots (Box 2) ---
