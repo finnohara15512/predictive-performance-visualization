@@ -69,12 +69,18 @@ def compute_all_metrics(df: pd.DataFrame) -> pd.DataFrame:
 # Plotting utilities
 # ----------------------------
 
-def plot_roc_curve(metrics_df: pd.DataFrame, selected_threshold: float):
+def plot_roc_curve(metrics_df: pd.DataFrame, selected_threshold: float, show_selected: bool = True):
     tpr = metrics_df["Sensitivity (Recall)"]
     fpr = 1 - metrics_df["Specificity"]
     fig, ax = plt.subplots(figsize=(2.5, 2.5))
     ax.plot(fpr, tpr, marker="o")
-    # Removed red dot for Selected Threshold
+    if show_selected:
+        selected_idx = metrics_df["Threshold"] == selected_threshold
+        ax.plot(
+            (1 - metrics_df["Specificity"][selected_idx]),
+            metrics_df["Sensitivity (Recall)"][selected_idx],
+            'ro', label="Selected Threshold"
+        )
     ax.plot([0, 1], [0, 1], linestyle='--', color='gray', linewidth=0.8, label='Random Classifier')
     ax.set_xlabel("1 - Specificity (False Positive Rate)", fontsize=6)
     ax.set_ylabel("Sensitivity (True Positive Rate)", fontsize=6)
@@ -84,12 +90,18 @@ def plot_roc_curve(metrics_df: pd.DataFrame, selected_threshold: float):
     ax.legend(fontsize=6)
     return fig
 
-def plot_pr_curve(metrics_df: pd.DataFrame, selected_threshold: float, df: pd.DataFrame):
+def plot_pr_curve(metrics_df: pd.DataFrame, selected_threshold: float, df: pd.DataFrame, show_selected: bool = True):
     recall = metrics_df["Sensitivity (Recall)"]
     precision = metrics_df["PPV (Precision)"]
     fig, ax = plt.subplots(figsize=(2.5, 2.5))
     ax.plot(recall, precision, marker="o")
-    # Removed red dot for Selected Threshold
+    if show_selected:
+        selected_idx = metrics_df["Threshold"] == selected_threshold
+        ax.plot(
+            metrics_df["Sensitivity (Recall)"][selected_idx],
+            metrics_df["PPV (Precision)"][selected_idx],
+            'ro', label="Selected Threshold"
+        )
     # Random classifier line
     ax.axhline(y=0.5, color='gray', linestyle='--', linewidth=0.8, label="Random Classifier")
     ax.set_xlabel("Recall", fontsize=6)
@@ -225,7 +237,7 @@ with tab_news_2t:
             st.dataframe(metrics_table, use_container_width=True, hide_index=True, height=270)
 
         with col_roc:
-            fig_roc = plot_roc_curve(metrics_df, t1)
+            fig_roc = plot_roc_curve(metrics_df, t1, show_selected=False)
             idx_t2 = metrics_df["Threshold"] == t2
             ax_roc = fig_roc.axes[0]
             # Overlay T1 and T2 points, with correct labeling
@@ -243,7 +255,7 @@ with tab_news_2t:
             st.pyplot(fig_roc, use_container_width=True)
 
         with col_pr:
-            fig_pr = plot_pr_curve(metrics_df, t1, df)
+            fig_pr = plot_pr_curve(metrics_df, t1, df, show_selected=False)
             ax_pr = fig_pr.axes[0]
             ax_pr.plot(
                 row_t1["Sensitivity (Recall)"],
@@ -363,8 +375,8 @@ with tab_news:
             metrics_table.columns = ["Metric", "Value"]
             st.dataframe(metrics_table, use_container_width=True, hide_index=True)
         with col_m:
-            fig_roc = plot_roc_curve(metrics_df, selected_threshold)
-            fig_pr = plot_pr_curve(metrics_df, selected_threshold, df)
+            fig_roc = plot_roc_curve(metrics_df, selected_threshold, show_selected=True)
+            fig_pr = plot_pr_curve(metrics_df, selected_threshold, df, show_selected=True)
             col1, col2 = st.columns(2)
             with col1:
                 st.pyplot(fig_roc)
@@ -447,8 +459,8 @@ with tab_qsofa:
             metrics_table.columns = ["Metric", "Value"]
             st.dataframe(metrics_table, use_container_width=True, hide_index=True)
         with col_m:
-            fig_roc = plot_roc_curve(metrics_df, selected_threshold)
-            fig_pr = plot_pr_curve(metrics_df, selected_threshold, df)
+            fig_roc = plot_roc_curve(metrics_df, selected_threshold, show_selected=True)
+            fig_pr = plot_pr_curve(metrics_df, selected_threshold, df, show_selected=True)
             col1, col2 = st.columns(2)
             with col1:
                 st.pyplot(fig_roc)
@@ -532,8 +544,8 @@ with tab_gbs:
             metrics_table.columns = ["Metric", "Value"]
             st.dataframe(metrics_table, use_container_width=True, hide_index=True)
         with col_m:
-            fig_roc = plot_roc_curve(metrics_df, selected_threshold)
-            fig_pr = plot_pr_curve(metrics_df, selected_threshold, df)
+            fig_roc = plot_roc_curve(metrics_df, selected_threshold, show_selected=True)
+            fig_pr = plot_pr_curve(metrics_df, selected_threshold, df, show_selected=True)
             col1, col2 = st.columns(2)
             with col1:
                 st.pyplot(fig_roc)
@@ -617,8 +629,8 @@ with tab_news_custom:
             metrics_table.columns = ["Metric", "Value"]
             st.dataframe(metrics_table, use_container_width=True, hide_index=True)
         with col_m:
-            fig_roc = plot_roc_curve(metrics_df, selected_threshold)
-            fig_pr = plot_pr_curve(metrics_df, selected_threshold, df)
+            fig_roc = plot_roc_curve(metrics_df, selected_threshold, show_selected=True)
+            fig_pr = plot_pr_curve(metrics_df, selected_threshold, df, show_selected=True)
             col1, col2 = st.columns(2)
             with col1:
                 st.pyplot(fig_roc)
