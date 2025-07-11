@@ -117,10 +117,10 @@ st.set_page_config(page_title="Postoperative Predictive Performance Visualizatio
 st.title("Postoperative Predictive Performance Visualization")
 
 # Create tabs
-tab_sepsis, tab_bleeding = st.tabs(["Postoperative Sepsis", "Postoperative Bleeding"])
+tab_news, tab_gbs, tab_news_custom, tab_gbs_custom = st.tabs(["NEWS", "GBS", "Sepsis Custom", "Bleeding Custom"])
 
-# Sepsis Tab
-with tab_sepsis:
+# NEWS Tab
+with tab_news:
     st.subheader("Model Output: Postoperative Sepsis")
     try:
         df = load_confusion_data("news_scores.csv")
@@ -169,8 +169,8 @@ This model uses physiological and lab data to anticipate sepsis onset based on t
     except FileNotFoundError:
         st.error("Missing file: ./data/news_scores.csv")
 
-# Bleeding Tab
-with tab_bleeding:
+# GBS Tab
+with tab_gbs:
     st.subheader("Model Output: Postoperative Bleeding")
     try:
         df = load_confusion_data("gbs_scores.csv")
@@ -218,3 +218,103 @@ This model leverages vital signs and clinical scores to predict bleeding risk af
 
     except FileNotFoundError:
         st.error("Missing file: ./data/gbs_scores.csv")
+
+# NEWS Custom Tab
+with tab_news_custom:
+    st.subheader("Model Output: Postoperative Sepsis")
+    try:
+        df = load_confusion_data("sepsis_custom_scores.csv")
+        metrics_df = compute_all_metrics(df)
+
+        # --- Threshold selection box (Box 1) ---
+        st.markdown("### Threshold Selection")
+        with st.container(border=True):
+            st.markdown("**What is a threshold?**  \nIn classification models, a threshold is the cutoff point at which a predicted probability is converted into a class label. Adjusting this affects the trade-off between sensitivity and specificity.")
+            threshold_values = df["Threshold"].sort_values().unique().tolist()
+            step_val = float(threshold_values[1] - threshold_values[0]) if len(threshold_values) > 1 else 0.01
+            selected_threshold = st.slider(
+                "Choose Threshold",
+                min_value=float(min(threshold_values)),
+                max_value=float(max(threshold_values)),
+                value=float(threshold_values[0]),
+                step=step_val
+            )
+
+        # --- Metrics and plots (Box 2) ---
+        selected_row = metrics_df[metrics_df["Threshold"] == selected_threshold].iloc[0]
+        col_l, col_m, col_r = st.columns([0.3, 0.4, 0.3])
+        with col_l:
+            st.markdown("**Metrics at Selected Threshold**")
+            metrics_table = pd.DataFrame([selected_row]).T.reset_index()
+            metrics_table.columns = ["Metric", "Value"]
+            st.dataframe(metrics_table, use_container_width=True, hide_index=True)
+        with col_m:
+            fig_roc = plot_roc_curve(metrics_df, selected_threshold)
+            fig_pr = plot_pr_curve(metrics_df, selected_threshold, df)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.pyplot(fig_roc)
+            with col2:
+                st.pyplot(fig_pr)
+
+        # --- Box 3: About Sepsis ---
+        st.markdown("### About Postoperative Sepsis")
+        st.markdown("""
+Sepsis is a life-threatening response to infection that can occur after surgery.
+Early identification using predictive models is critical to initiate timely treatment.
+
+This model uses physiological and lab data to anticipate sepsis onset based on trends in early recovery.
+""")
+
+    except FileNotFoundError:
+        st.error("Missing file: ./data/sepsis_custom_scores.csv")
+
+# GBS Custom Tab
+with tab_gbs_custom:
+    st.subheader("Model Output: Postoperative Bleeding")
+    try:
+        df = load_confusion_data("bleeding_custom_scores.csv")
+        metrics_df = compute_all_metrics(df)
+
+        # --- Threshold selection box (Box 1) ---
+        st.markdown("### Threshold Selection")
+        with st.container(border=True):
+            st.markdown("**What is a threshold?**  \nIn classification models, a threshold is the cutoff point at which a predicted probability is converted into a class label. Adjusting this affects the trade-off between sensitivity and specificity.")
+            threshold_values = df["Threshold"].sort_values().unique().tolist()
+            step_val = float(threshold_values[1] - threshold_values[0]) if len(threshold_values) > 1 else 0.01
+            selected_threshold = st.slider(
+                "Choose Threshold",
+                min_value=float(min(threshold_values)),
+                max_value=float(max(threshold_values)),
+                value=float(threshold_values[0]),
+                step=step_val
+            )
+
+        # --- Metrics and plots (Box 2) ---
+        selected_row = metrics_df[metrics_df["Threshold"] == selected_threshold].iloc[0]
+        col_l, col_m, col_r = st.columns([0.3, 0.4, 0.3])
+        with col_l:
+            st.markdown("**Metrics at Selected Threshold**")
+            metrics_table = pd.DataFrame([selected_row]).T.reset_index()
+            metrics_table.columns = ["Metric", "Value"]
+            st.dataframe(metrics_table, use_container_width=True, hide_index=True)
+        with col_m:
+            fig_roc = plot_roc_curve(metrics_df, selected_threshold)
+            fig_pr = plot_pr_curve(metrics_df, selected_threshold, df)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.pyplot(fig_roc)
+            with col2:
+                st.pyplot(fig_pr)
+
+        # --- Box 3: About Bleeding ---
+        st.markdown("### About Postoperative Bleeding")
+        st.markdown("""
+Postoperative bleeding is a serious complication that can lead to reoperation, transfusion, or longer ICU stays.
+Accurate early prediction helps clinicians intervene proactively.
+
+This model leverages vital signs and clinical scores to predict bleeding risk after surgery.
+""")
+
+    except FileNotFoundError:
+        st.error("Missing file: ./data/bleeding_custom_scores.csv")
