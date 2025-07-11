@@ -141,7 +141,9 @@ with tab_sepsis:
         col_l, col_m, col_r = st.columns([0.3, 0.4, 0.3])
         with col_l:
             st.markdown("**Metrics at Selected Threshold**")
-            st.dataframe(pd.DataFrame([selected_row]).round(3), use_container_width=True)
+            metrics_table = pd.DataFrame([selected_row]).T.reset_index()
+            metrics_table.columns = ["Metric", "Value"]
+            st.dataframe(metrics_table, use_container_width=True, hide_index=True)
         with col_m:
             fig_roc = plot_roc_curve(metrics_df, selected_threshold)
             fig_pr = plot_pr_curve(metrics_df, selected_threshold, df)
@@ -186,7 +188,9 @@ with tab_bleeding:
         col_l, col_m, col_r = st.columns([0.3, 0.4, 0.3])
         with col_l:
             st.markdown("**Metrics at Selected Threshold**")
-            st.dataframe(pd.DataFrame([selected_row]).round(3), use_container_width=True)
+            metrics_table = pd.DataFrame([selected_row]).T.reset_index()
+            metrics_table.columns = ["Metric", "Value"]
+            st.dataframe(metrics_table, use_container_width=True, hide_index=True)
         with col_m:
             fig_roc = plot_roc_curve(metrics_df, selected_threshold)
             fig_pr = plot_pr_curve(metrics_df, selected_threshold, df)
