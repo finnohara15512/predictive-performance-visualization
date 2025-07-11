@@ -257,10 +257,10 @@ with tab_news_2t:
         tp_low = 0
         # For MODERATE zone: between T1 and T2, use difference between T1 and T2
         # Compute confusion matrix entries for MODERATE as difference
-        tn_mod = (row_t2["TN"] - row_t1["TN"]) * sample_size / df["TN"].max() if df["TN"].max() > 0 else 0
-        fn_mod = (row_t2["FN"] - row_t1["FN"]) * sample_size / df["FN"].max() if df["FN"].max() > 0 else 0
-        fp_mod = (row_t2["FP"] - row_t1["FP"]) * sample_size / df["FP"].max() if df["FP"].max() > 0 else 0
-        tp_mod = (row_t2["TP"] - row_t1["TP"]) * sample_size / df["TP"].max() if df["TP"].max() > 0 else 0
+        tn_mod = (df.loc[df["Threshold"] == t2, "TN"].values[0] - df.loc[df["Threshold"] == t1, "TN"].values[0]) * sample_size / df["TN"].max() if df["TN"].max() > 0 else 0
+        fn_mod = (df.loc[df["Threshold"] == t2, "FN"].values[0] - df.loc[df["Threshold"] == t1, "FN"].values[0]) * sample_size / df["FN"].max() if df["FN"].max() > 0 else 0
+        fp_mod = (df.loc[df["Threshold"] == t2, "FP"].values[0] - df.loc[df["Threshold"] == t1, "FP"].values[0]) * sample_size / df["FP"].max() if df["FP"].max() > 0 else 0
+        tp_mod = (df.loc[df["Threshold"] == t2, "TP"].values[0] - df.loc[df["Threshold"] == t1, "TP"].values[0]) * sample_size / df["TP"].max() if df["TP"].max() > 0 else 0
         # For HIGH zone: above T2, use T2 TP/FP rates
         tn_high = 0
         fn_high = 0
