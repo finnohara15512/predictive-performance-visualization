@@ -6,14 +6,14 @@ from sklearn.metrics import roc_curve, precision_recall_curve, confusion_matrix,
 
 st.set_page_config(page_title="Postoperative Predictive Performance Visualization", layout="wide")
 
-# ---- Simulated data
+# ---- Simulated Data
 def generate_fake_data(seed=42):
     np.random.seed(seed)
     y_true = np.random.binomial(1, 0.3, 1000)
     y_scores = y_true * np.random.uniform(0.4, 1.0, 1000) + (1 - y_true) * np.random.uniform(0.0, 0.6, 1000)
     return y_true, y_scores
 
-# ---- Metrics
+# ---- Compute Metrics
 def compute_metrics(y_true, y_scores, threshold):
     y_pred = (y_scores >= threshold).astype(int)
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
@@ -45,109 +45,115 @@ def compute_metrics(y_true, y_scores, threshold):
     }
     return metrics
 
-# ---- Metric Descriptions
+# ---- Descriptions
 metric_descriptions = {
-    "N": "The total number of predictions made, which equals the number of samples evaluated.",
-    "Label Prevalence": "The proportion of positive cases in the true labels (i.e., how often the event actually happened).",
-    "Prediction Prevalence": "The proportion of positive predictions made by the model at the selected threshold.",
-    "Sensitivity (Recall)": "The proportion of true positives identified among all actual positive cases. High sensitivity means fewer false negatives.",
-    "Specificity": "The proportion of true negatives correctly identified among all actual negative cases. High specificity means fewer false positives.",
-    "PPV (Precision)": "The proportion of true positives among all positive predictions. It tells you how often a positive prediction is actually correct.",
-    "NPV": "The proportion of true negatives among all negative predictions. It tells you how often a negative prediction is actually correct.",
-    "Accuracy": "The proportion of correct predictions (both positives and negatives) out of all predictions made.",
-    "F1 Score": "The harmonic mean of precision and recall. It balances both metrics and is especially useful in imbalanced datasets.",
-    "ROC AUC": "Area under the ROC curve. A measure of the model's ability to discriminate between classes, with 1 being perfect.",
-    "Average Precision": "The area under the precision-recall curve, summarizing the tradeoff between precision and recall at different thresholds."
+    "N": "The total number of predictions made.",
+    "Label Prevalence": "Proportion of positive cases in ground truth.",
+    "Prediction Prevalence": "Proportion of positive predictions by model.",
+    "Sensitivity (Recall)": "True positives / All actual positives.",
+    "Specificity": "True negatives / All actual negatives.",
+    "PPV (Precision)": "True positives / All predicted positives.",
+    "NPV": "True negatives / All predicted negatives.",
+    "Accuracy": "Correct predictions / All predictions.",
+    "F1 Score": "Harmonic mean of precision and recall.",
+    "ROC AUC": "Area under ROC curve.",
+    "Average Precision": "Area under the PR curve."
 }
 
-# ---- Plots
+# ---- Plot ROC and PR
 def plot_curves(y_true, y_scores, threshold):
     fpr, tpr, _ = roc_curve(y_true, y_scores)
     precision, recall, _ = precision_recall_curve(y_true, y_scores)
 
-    # ROC
-    fig_roc, ax_roc = plt.subplots(figsize=(2.5, 2.5))
-    ax_roc.plot(fpr, tpr)
     pred = (y_scores >= threshold).astype(int)
     roc_point = [np.mean(pred[y_true == 0]), np.mean(pred[y_true == 1])]
-    ax_roc.plot(roc_point[0], roc_point[1], 'ro')
-    ax_roc.set_xlabel("FPR")
-    ax_roc.set_ylabel("TPR")
-    ax_roc.set_title("ROC")
-    ax_roc.grid(True)
-
-    # PR
-    fig_pr, ax_pr = plt.subplots(figsize=(2.5, 2.5))
-    ax_pr.plot(recall, precision)
     tp = np.sum((pred == 1) & (y_true == 1))
     fp = np.sum((pred == 1) & (y_true == 0))
     fn = np.sum((pred == 0) & (y_true == 1))
     prec_point = tp / (tp + fp) if (tp + fp) > 0 else 0
     rec_point = tp / (tp + fn) if (tp + fn) > 0 else 0
+
+    # ROC
+    fig_roc, ax_roc = plt.subplots(figsize=(2.2, 2.2))
+    ax_roc.plot(fpr, tpr)
+    ax_roc.plot(roc_point[0], roc_point[1], 'ro')
+    ax_roc.set_title("ROC")
+    ax_roc.set_xlabel("FPR")
+    ax_roc.set_ylabel("TPR")
+    ax_roc.grid(True)
+
+    # PR
+    fig_pr, ax_pr = plt.subplots(figsize=(2.2, 2.2))
+    ax_pr.plot(recall, precision)
     ax_pr.plot(rec_point, prec_point, 'ro')
+    ax_pr.set_title("PR")
     ax_pr.set_xlabel("Recall")
     ax_pr.set_ylabel("Precision")
-    ax_pr.set_title("PR")
     ax_pr.grid(True)
 
     return fig_roc, fig_pr
 
-# ---- Prevalence bar
+# ---- Prevalence Bar
 def draw_prevalence_bar(pred_prev):
-    fig, ax = plt.subplots(figsize=(0.8, 2.5))
+    fig, ax = plt.subplots(figsize=(0.5, 2.2))
     low_pct = 1 - pred_prev
     high_pct = pred_prev
 
-    ax.bar(0, high_pct, color='green', bottom=low_pct, width=0.5)
-    ax.bar(0, low_pct, color='lightcoral', bottom=0, width=0.5)
-
-    ax.text(0, 1 - high_pct / 2, f"High\n{high_pct*100:.1f}%", color='white', ha='center', va='center', fontsize=8)
-    ax.text(0, low_pct / 2, f"Low\n{low_pct*100:.1f}%", color='white', ha='center', va='center', fontsize=8)
+    ax.bar(0, high_pct, color='green', bottom=low_pct, width=0.4)
+    ax.bar(0, low_pct, color='lightcoral', bottom=0, width=0.4)
+    ax.text(0, 1 - high_pct / 2, f"High\n{high_pct*100:.1f}%", color='white', ha='center', va='center', fontsize=7)
+    ax.text(0, low_pct / 2, f"Low\n{low_pct*100:.1f}%", color='white', ha='center', va='center', fontsize=7)
 
     ax.set_xlim(-0.5, 0.5)
     ax.set_ylim(0, 1)
     ax.axis('off')
     return fig
 
-# ---- App Layout
+# ---- HTML Tooltip Builder
+def metric_label_html(name, desc):
+    return f"""
+    <div style="display: flex; align-items: center;">
+      <span title="{desc}" style="cursor: help; color: #555; margin-right: 6px;">❓</span>
+      <span>{name}</span>
+    </div>
+    """
+
+# ---- Main App Layout
 st.title("📊 Postoperative Predictive Performance Visualization")
 tab1, tab2 = st.tabs(["🩺 Postoperative Sepsis", "🩸 Postoperative Bleeding"])
 
 for tab, label in zip([tab1, tab2], ["sepsis", "bleeding"]):
     with tab:
-        st.subheader(f"Model Performance for Postoperative {label.capitalize()}")
         y_true, y_scores = generate_fake_data(seed=42 if label == "sepsis" else 24)
+        st.subheader(f"{label.capitalize()} Model Output")
+
+        threshold = st.slider(f"Threshold for {label} prediction", 0.0, 1.0, 0.5, 0.01)
 
         with st.container():
-            st.markdown("<div style='max-width:900px;margin:auto;'>", unsafe_allow_html=True)
+            st.markdown("<div style='max-width:1080px;margin:auto;'>", unsafe_allow_html=True)
+            col_metrics, col_roc, col_pr, col_bar = st.columns([3, 2, 2, 1])
 
-            threshold = st.slider(f"Threshold for {label} prediction", 0.0, 1.0, 0.5, 0.01)
+            with col_metrics:
+                metrics = compute_metrics(y_true, y_scores, threshold)
+                metric_table = pd.DataFrame([
+                    {
+                        "Metric": metric_label_html(k, metric_descriptions.get(k, "")),
+                        "Value": round(v, 3)
+                    } for k, v in metrics.items()
+                ])
+                st.markdown("### Classification Metrics")
+                st.write(metric_table.to_html(escape=False, index=False), unsafe_allow_html=True)
 
-            col1, col2, col3 = st.columns([2, 2, 1])
-            fig_roc, fig_pr = plot_curves(y_true, y_scores, threshold)
-            pred_prev = np.mean(y_scores >= threshold)
-
-            with col1:
+            with col_roc:
+                fig_roc, fig_pr = plot_curves(y_true, y_scores, threshold)
                 st.pyplot(fig_roc)
-            with col2:
+
+            with col_pr:
                 st.pyplot(fig_pr)
-            with col3:
-                st.markdown("<div style='padding-top:25px;'>", unsafe_allow_html=True)
-                st.pyplot(draw_prevalence_bar(pred_prev))
+
+            with col_bar:
+                st.markdown("<div style='padding-top:20px;'>", unsafe_allow_html=True)
+                st.pyplot(draw_prevalence_bar(np.mean(y_scores >= threshold)))
                 st.markdown("</div>", unsafe_allow_html=True)
-
-            # Metrics table with hoverable tooltips
-            metrics = compute_metrics(y_true, y_scores, threshold)
-            metric_display = []
-            for k, v in metrics.items():
-                desc = metric_descriptions.get(k, "")
-                label_html = f"<span title='{desc}'>❓</span> <b>{k}</b>"
-                metric_display.append({"Metric": label_html, "Value": round(v, 3)})
-
-            st.markdown("### Classification Metrics")
-            st.write(
-                pd.DataFrame(metric_display).to_html(escape=False, index=False),
-                unsafe_allow_html=True
-            )
 
             st.markdown("</div>", unsafe_allow_html=True)
