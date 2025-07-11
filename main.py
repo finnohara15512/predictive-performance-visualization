@@ -119,38 +119,39 @@ def plot_prediction_bar(*args, **kwargs):
     If called with two values (pred_prev_t1, pred_prev_t2), plot LOW/MODERATE/HIGH.
     """
     if len(args) == 1 and isinstance(args[0], (dict, pd.Series)):
-        # Legacy: single row, two zones
+        # Legacy: single row, two zones (LOW/HIGH)
         row = args[0]
         pred_prev = row["Prediction Prevalence"]
         fig, ax = plt.subplots(figsize=(0.6, 0.9))
-        ax.bar(0, 1 - pred_prev, color='#800020', width=0.5)
-        ax.bar(0, pred_prev, bottom=1 - pred_prev, color='green', width=0.5)
+        # Reverse color assignments: LOW is green, HIGH is #800020
+        ax.bar(0, 1 - pred_prev, color='green', width=0.5)
+        ax.bar(0, pred_prev, bottom=1 - pred_prev, color='#800020', width=0.5)
         low_y = (1 - pred_prev) / 2
         ax.text(0, low_y, "LOW", ha='center', va='center', fontsize=5, color='white')
-        ax.text(0.6, low_y, f"{(1 - pred_prev)*100:.1f}%", ha='left', va='center', fontsize=5, color='#800020')
+        ax.text(0.6, low_y, f"{(1 - pred_prev)*100:.1f}%", ha='left', va='center', fontsize=5, color='green')
         high_y = 1 - (pred_prev / 2)
         ax.text(0, high_y, "HIGH", ha='center', va='center', fontsize=5, color='white')
-        ax.text(0.6, high_y, f"{pred_prev*100:.1f}%", ha='left', va='center', fontsize=5, color='green')
+        ax.text(0.6, high_y, f"{pred_prev*100:.1f}%", ha='left', va='center', fontsize=5, color='#800020')
         ax.set_xlim(-0.5, 0.8)
         ax.set_ylim(0, 1)
         ax.axis("off")
         return fig
     elif len(args) == 2:
-        # New: dual threshold, three zones
+        # Dual threshold, three zones (LOW/MODERATE/HIGH)
         pred_prev_t1, pred_prev_t2 = args
         fig, ax = plt.subplots(figsize=(0.6, 0.9))
         # Calculate zone heights
         low_val = 1 - pred_prev_t1
         mod_val = pred_prev_t1 - pred_prev_t2
         high_val = pred_prev_t2
-        # Draw bars
-        ax.bar(0, low_val, color='#800020', width=0.5, label="LOW")
+        # Reverse colors: LOW is green, MODERATE gold, HIGH is #800020
+        ax.bar(0, low_val, color='green', width=0.5, label="LOW")
         ax.bar(0, mod_val, bottom=low_val, color='gold', width=0.5, label="MODERATE")
-        ax.bar(0, high_val, bottom=low_val + mod_val, color='green', width=0.5, label="HIGH")
+        ax.bar(0, high_val, bottom=low_val + mod_val, color='#800020', width=0.5, label="HIGH")
         # LOW label
         low_y = low_val / 2
         ax.text(0, low_y, "LOW", ha='center', va='center', fontsize=5, color='white')
-        ax.text(0.6, low_y, f"{low_val*100:.1f}%", ha='left', va='center', fontsize=5, color='#800020')
+        ax.text(0.6, low_y, f"{low_val*100:.1f}%", ha='left', va='center', fontsize=5, color='green')
         # MODERATE label
         mod_y = low_val + (mod_val / 2)
         ax.text(0, mod_y, "MODERATE", ha='center', va='center', fontsize=5, color='black')
@@ -158,7 +159,7 @@ def plot_prediction_bar(*args, **kwargs):
         # HIGH label
         high_y = low_val + mod_val + (high_val / 2)
         ax.text(0, high_y, "HIGH", ha='center', va='center', fontsize=5, color='white')
-        ax.text(0.6, high_y, f"{high_val*100:.1f}%", ha='left', va='center', fontsize=5, color='green')
+        ax.text(0.6, high_y, f"{high_val*100:.1f}%", ha='left', va='center', fontsize=5, color='#800020')
         ax.set_xlim(-0.5, 0.8)
         ax.set_ylim(0, 1)
         ax.axis("off")
@@ -315,10 +316,10 @@ with tab_news_2t:
         label_term = "sepsis"
         # LOW
         with col_low:
-            st.markdown(f"#### Model Labels as <span style='color:#800020;'>LOW</span>", unsafe_allow_html=True)
-            st.markdown(figure_block(f"Cases without {label_term}", tn_low, "#800020"), unsafe_allow_html=True)
+            st.markdown(f"#### Model Labels as <span style='color:green;'>LOW</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", tn_low, "green"), unsafe_allow_html=True)
             st.markdown("")
-            st.markdown(figure_block(f"Cases with {label_term}", fn_low, "#800020"), unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases with {label_term}", fn_low, "green"), unsafe_allow_html=True)
         # MODERATE
         with col_mod:
             st.markdown(f"#### Model Labels as <span style='color:gold;'>MODERATE</span>", unsafe_allow_html=True)
@@ -327,10 +328,10 @@ with tab_news_2t:
             st.markdown(figure_block(f"Cases with {label_term}", fn_mod, "gold"), unsafe_allow_html=True)
         # HIGH
         with col_high:
-            st.markdown(f"#### Model Labels as <span style='color:green;'>HIGH</span>", unsafe_allow_html=True)
-            st.markdown(figure_block(f"Cases without {label_term}", fp_high, "green"), unsafe_allow_html=True)
+            st.markdown(f"#### Model Labels as <span style='color:#800020;'>HIGH</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", fp_high, "#800020"), unsafe_allow_html=True)
             st.markdown("")
-            st.markdown(figure_block(f"Cases with {label_term}", tp_high, "green"), unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases with {label_term}", tp_high, "#800020"), unsafe_allow_html=True)
 
         # --- Box 3: About Sepsis ---
         st.markdown("### About Postoperative Sepsis")
@@ -406,16 +407,16 @@ with tab_news:
         label_term = "sepsis"
 
         with col_low:
-            st.markdown(f"#### Model Labels as <span style='color:#800020;'>LOW</span>", unsafe_allow_html=True)
-            st.markdown(figure_block(f"Cases without {label_term}", tn, "#800020"), unsafe_allow_html=True)
+            st.markdown(f"#### Model Labels as <span style='color:green;'>LOW</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", tn, "green"), unsafe_allow_html=True)
             st.markdown("")
-            st.markdown(figure_block(f"Cases with {label_term}", fn, "#800020"), unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases with {label_term}", fn, "green"), unsafe_allow_html=True)
 
         with col_high:
-            st.markdown(f"#### Model Labels as <span style='color:green;'>HIGH</span>", unsafe_allow_html=True)
-            st.markdown(figure_block(f"Cases without {label_term}", fp, "green"), unsafe_allow_html=True)
+            st.markdown(f"#### Model Labels as <span style='color:#800020;'>HIGH</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", fp, "#800020"), unsafe_allow_html=True)
             st.markdown("")
-            st.markdown(figure_block(f"Cases with {label_term}", tp, "green"), unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases with {label_term}", tp, "#800020"), unsafe_allow_html=True)
 
         # --- Box 3: About Sepsis ---
         st.markdown("### About Postoperative Sepsis")
@@ -490,16 +491,16 @@ with tab_qsofa:
         label_term = "sepsis"
 
         with col_low:
-            st.markdown(f"#### Model Labels as <span style='color:#800020;'>LOW</span>", unsafe_allow_html=True)
-            st.markdown(figure_block(f"Cases without {label_term}", tn, "#800020"), unsafe_allow_html=True)
+            st.markdown(f"#### Model Labels as <span style='color:green;'>LOW</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", tn, "green"), unsafe_allow_html=True)
             st.markdown("")
-            st.markdown(figure_block(f"Cases with {label_term}", fn, "#800020"), unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases with {label_term}", fn, "green"), unsafe_allow_html=True)
 
         with col_high:
-            st.markdown(f"#### Model Labels as <span style='color:green;'>HIGH</span>", unsafe_allow_html=True)
-            st.markdown(figure_block(f"Cases without {label_term}", fp, "green"), unsafe_allow_html=True)
+            st.markdown(f"#### Model Labels as <span style='color:#800020;'>HIGH</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", fp, "#800020"), unsafe_allow_html=True)
             st.markdown("")
-            st.markdown(figure_block(f"Cases with {label_term}", tp, "green"), unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases with {label_term}", tp, "#800020"), unsafe_allow_html=True)
 
         # --- Box 3: About Sepsis ---
         st.markdown("### About Postoperative Sepsis")
@@ -575,16 +576,16 @@ with tab_gbs:
         label_term = "bleeding"
 
         with col_low:
-            st.markdown(f"#### Model Labels as <span style='color:#800020;'>LOW</span>", unsafe_allow_html=True)
-            st.markdown(figure_block(f"Cases without {label_term}", tn, "#800020"), unsafe_allow_html=True)
+            st.markdown(f"#### Model Labels as <span style='color:green;'>LOW</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", tn, "green"), unsafe_allow_html=True)
             st.markdown("")
-            st.markdown(figure_block(f"Cases with {label_term}", fn, "#800020"), unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases with {label_term}", fn, "green"), unsafe_allow_html=True)
 
         with col_high:
-            st.markdown(f"#### Model Labels as <span style='color:green;'>HIGH</span>", unsafe_allow_html=True)
-            st.markdown(figure_block(f"Cases without {label_term}", fp, "green"), unsafe_allow_html=True)
+            st.markdown(f"#### Model Labels as <span style='color:#800020;'>HIGH</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", fp, "#800020"), unsafe_allow_html=True)
             st.markdown("")
-            st.markdown(figure_block(f"Cases with {label_term}", tp, "green"), unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases with {label_term}", tp, "#800020"), unsafe_allow_html=True)
 
         # --- Box 3: About Bleeding ---
         st.markdown("### About Postoperative Bleeding")
@@ -660,16 +661,16 @@ with tab_news_custom:
         label_term = "sepsis"
 
         with col_low:
-            st.markdown(f"#### Model Labels as <span style='color:#800020;'>LOW</span>", unsafe_allow_html=True)
-            st.markdown(figure_block(f"Cases without {label_term}", tn, "#800020"), unsafe_allow_html=True)
+            st.markdown(f"#### Model Labels as <span style='color:green;'>LOW</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", tn, "green"), unsafe_allow_html=True)
             st.markdown("")
-            st.markdown(figure_block(f"Cases with {label_term}", fn, "#800020"), unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases with {label_term}", fn, "green"), unsafe_allow_html=True)
 
         with col_high:
-            st.markdown(f"#### Model Labels as <span style='color:green;'>HIGH</span>", unsafe_allow_html=True)
-            st.markdown(figure_block(f"Cases without {label_term}", fp, "green"), unsafe_allow_html=True)
+            st.markdown(f"#### Model Labels as <span style='color:#800020;'>HIGH</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", fp, "#800020"), unsafe_allow_html=True)
             st.markdown("")
-            st.markdown(figure_block(f"Cases with {label_term}", tp, "green"), unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases with {label_term}", tp, "#800020"), unsafe_allow_html=True)
 
         # --- Box 3: About Sepsis ---
         st.markdown("### About Postoperative Sepsis")
@@ -745,16 +746,16 @@ with tab_gbs_custom:
         label_term = "bleeding"
 
         with col_low:
-            st.markdown(f"#### Model Labels as <span style='color:#800020;'>LOW</span>", unsafe_allow_html=True)
-            st.markdown(figure_block(f"Cases without {label_term}", tn, "#800020"), unsafe_allow_html=True)
+            st.markdown(f"#### Model Labels as <span style='color:green;'>LOW</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", tn, "green"), unsafe_allow_html=True)
             st.markdown("")
-            st.markdown(figure_block(f"Cases with {label_term}", fn, "#800020"), unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases with {label_term}", fn, "green"), unsafe_allow_html=True)
 
         with col_high:
-            st.markdown(f"#### Model Labels as <span style='color:green;'>HIGH</span>", unsafe_allow_html=True)
-            st.markdown(figure_block(f"Cases without {label_term}", fp, "green"), unsafe_allow_html=True)
+            st.markdown(f"#### Model Labels as <span style='color:#800020;'>HIGH</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", fp, "#800020"), unsafe_allow_html=True)
             st.markdown("")
-            st.markdown(figure_block(f"Cases with {label_term}", tp, "green"), unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases with {label_term}", tp, "#800020"), unsafe_allow_html=True)
 
         # --- Box 3: About Bleeding ---
         st.markdown("### About Postoperative Bleeding")
