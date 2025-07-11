@@ -36,7 +36,9 @@ def load_confusion_data(filename: str) -> pd.DataFrame:
 
 def compute_metrics_from_row(row) -> dict:
     tp, fp, fn, tn = row["TP"], row["FP"], row["FN"], row["TN"]
-    total = tp + fp + fn + tn
+    pred_pos = tp + fp
+    pred_neg = tn + fn
+    total = pred_pos + pred_neg
 
     sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0
     specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
@@ -44,6 +46,8 @@ def compute_metrics_from_row(row) -> dict:
     npv = tn / (tn + fn) if (tn + fn) > 0 else 0
     accuracy = (tp + tn) / total if total > 0 else 0
     f1 = (2 * tp) / (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 0
+    label_prevalence = (tp + fn) / total if total > 0 else 0
+    pred_prevalence = pred_pos / total if total > 0 else 0
 
     return {
         "Threshold": row["Threshold"],
@@ -52,7 +56,9 @@ def compute_metrics_from_row(row) -> dict:
         "PPV (Precision)": precision,
         "NPV": npv,
         "Accuracy": accuracy,
-        "F1 Score": f1
+        "F1 Score": f1,
+        "Label Prevalence": label_prevalence,
+        "Prediction Prevalence": pred_prevalence,
     }
 
 def compute_all_metrics(df: pd.DataFrame) -> pd.DataFrame:
@@ -109,6 +115,20 @@ def plot_pr_curve(metrics_df: pd.DataFrame, selected_threshold: float, df: pd.Da
     ax.legend(fontsize=6)
     return fig
 
+def plot_prediction_bar(row):
+    pred_prev = row["Prediction Prevalence"]
+    fig, ax = plt.subplots(figsize=(0.6, 2.5))
+    ax.bar(0, pred_prev, color='green', width=0.5)
+    ax.bar(0, 1 - pred_prev, bottom=pred_prev, color='lightcoral', width=0.5)
+    ax.text(0, pred_prev / 2, "HIGH", ha='center', va='center', fontsize=7, color='white')
+    ax.text(0, pred_prev + (1 - pred_prev) / 2, "LOW", ha='center', va='center', fontsize=7, color='black')
+    ax.text(0, pred_prev + 0.02, f"{pred_prev*100:.1f}%", ha='center', va='bottom', fontsize=6)
+    ax.text(0, pred_prev - 0.02, f"{(1 - pred_prev)*100:.1f}%", ha='center', va='top', fontsize=6)
+    ax.set_xlim(-0.5, 0.5)
+    ax.set_ylim(0, 1)
+    ax.axis("off")
+    return fig
+
 # ----------------------------
 # Streamlit App Layout
 # ----------------------------
@@ -157,6 +177,10 @@ with tab_news:
                 st.pyplot(fig_roc)
             with col2:
                 st.pyplot(fig_pr)
+
+        with col_r:
+            fig_prev = plot_prediction_bar(selected_row)
+            st.pyplot(fig_prev)
 
         # --- Box 3: About Sepsis ---
         st.markdown("### About Postoperative Sepsis")
@@ -209,6 +233,10 @@ with tab_gbs:
             with col2:
                 st.pyplot(fig_pr)
 
+        with col_r:
+            fig_prev = plot_prediction_bar(selected_row)
+            st.pyplot(fig_prev)
+
         # --- Box 3: About Bleeding ---
         st.markdown("### About Postoperative Bleeding")
         st.markdown("""
@@ -260,6 +288,10 @@ with tab_news_custom:
             with col2:
                 st.pyplot(fig_pr)
 
+        with col_r:
+            fig_prev = plot_prediction_bar(selected_row)
+            st.pyplot(fig_prev)
+
         # --- Box 3: About Sepsis ---
         st.markdown("### About Postoperative Sepsis")
         st.markdown("""
@@ -310,6 +342,10 @@ with tab_gbs_custom:
                 st.pyplot(fig_roc)
             with col2:
                 st.pyplot(fig_pr)
+
+        with col_r:
+            fig_prev = plot_prediction_bar(selected_row)
+            st.pyplot(fig_prev)
 
         # --- Box 3: About Bleeding ---
         st.markdown("### About Postoperative Bleeding")
