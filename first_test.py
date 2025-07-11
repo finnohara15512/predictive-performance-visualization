@@ -119,4 +119,35 @@ for tab, label in zip([tab1, tab2], ["sepsis", "bleeding"]):
         y_true, y_scores = generate_fake_data(seed=42 if label == "sepsis" else 24)
 
         with st.container():
-            st.markdown("<div style='max-width:900px;margin:auto;'>",
+            st.markdown("<div style='max-width:900px;margin:auto;'>", unsafe_allow_html=True)
+
+            threshold = st.slider(f"Threshold for {label} prediction", 0.0, 1.0, 0.5, 0.01)
+
+            col1, col2, col3 = st.columns([2, 2, 1])
+            fig_roc, fig_pr = plot_curves(y_true, y_scores, threshold)
+            pred_prev = np.mean(y_scores >= threshold)
+
+            with col1:
+                st.pyplot(fig_roc)
+            with col2:
+                st.pyplot(fig_pr)
+            with col3:
+                st.markdown("<div style='padding-top:25px;'>", unsafe_allow_html=True)
+                st.pyplot(draw_prevalence_bar(pred_prev))
+                st.markdown("</div>", unsafe_allow_html=True)
+
+            # Metrics table with hoverable tooltips
+            metrics = compute_metrics(y_true, y_scores, threshold)
+            metric_display = []
+            for k, v in metrics.items():
+                desc = metric_descriptions.get(k, "")
+                label_html = f"<span title='{desc}'>❓</span> <b>{k}</b>"
+                metric_display.append({"Metric": label_html, "Value": round(v, 3)})
+
+            st.markdown("### Classification Metrics")
+            st.write(
+                pd.DataFrame(metric_display).to_html(escape=False, index=False),
+                unsafe_allow_html=True
+            )
+
+            st.markdown("</div>", unsafe_allow_html=True)
