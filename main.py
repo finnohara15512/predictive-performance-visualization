@@ -117,7 +117,7 @@ def plot_pr_curve(metrics_df: pd.DataFrame, selected_threshold: float, df: pd.Da
 
 def plot_prediction_bar(row):
     pred_prev = row["Prediction Prevalence"]
-    fig, ax = plt.subplots(figsize=(0.6, 0.6))
+    fig, ax = plt.subplots(figsize=(0.6, 0.9))
     # Draw burgundy LOW on bottom, green HIGH on top
     ax.bar(0, 1 - pred_prev, color='#800020', width=0.5)
     ax.bar(0, pred_prev, bottom=1 - pred_prev, color='green', width=0.5)
