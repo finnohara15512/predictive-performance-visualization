@@ -180,6 +180,7 @@ tab_news, tab_gbs, tab_qsofa, tab_news_2t, tab_gbs_2t, tab_qsofa_2t = st.tabs([
 ])
 with tab_qsofa_2t:
     st.subheader("Model Output: Postoperative Sepsis (Dual Thresholds)")
+    st.markdown("_Generated on **July 11th, 2025** using **PW2** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
     try:
         df = load_confusion_data("qsofa_scores.csv")
         metrics_df = compute_all_metrics(df)
@@ -346,6 +347,7 @@ This model uses physiological and lab data to anticipate sepsis onset based on t
 # NEWS (2T) Tab
 with tab_news_2t:
     st.subheader("Model Output: Postoperative Sepsis (Dual Thresholds)")
+    st.markdown("_Generated on **July 11th, 2025** using **PW2** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
     try:
         df = load_confusion_data("news_scores.csv")
         metrics_df = compute_all_metrics(df)
@@ -513,6 +515,7 @@ This model uses physiological and lab data to anticipate sepsis onset based on t
 # NEWS Tab
 with tab_news:
     st.subheader("Model Output: Postoperative Sepsis")
+    st.markdown("_Generated on **July 11th, 2025** using **PW2** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
     try:
         df = load_confusion_data("news_scores.csv")
         metrics_df = compute_all_metrics(df)
@@ -597,6 +600,7 @@ This model uses physiological and lab data to anticipate sepsis onset based on t
 # qSOFA Tab (duplicate of NEWS, modified)
 with tab_qsofa:
     st.subheader("Model Output: Postoperative Sepsis")
+    st.markdown("_Generated on **July 11th, 2025** using **PW2** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
     try:
         df = load_confusion_data("qsofa_scores.csv")
         metrics_df = compute_all_metrics(df)
@@ -682,6 +686,7 @@ This model uses physiological and lab data to anticipate sepsis onset based on t
 # GBS Tab
 with tab_gbs:
     st.subheader("Model Output: Postoperative Bleeding")
+    st.markdown("_Generated on **July 11th, 2025** using **PW2** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
     try:
         df = load_confusion_data("gbs_scores.csv")
         metrics_df = compute_all_metrics(df)
@@ -768,6 +773,7 @@ This model leverages vital signs and clinical scores to predict bleeding risk af
 # GBS (2T) Tab
 with tab_gbs_2t:
     st.subheader("Model Output: Postoperative Bleeding (Dual Thresholds)")
+    st.markdown("_Generated on **July 11th, 2025** using **PW2** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
     try:
         df = load_confusion_data("gbs_scores.csv")
         metrics_df = compute_all_metrics(df)
