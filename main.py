@@ -175,9 +175,174 @@ st.set_page_config(page_title="Postoperative Predictive Performance Visualizatio
 st.title("Postoperative Predictive Performance Visualization")
 
 # Create tabs
-tab_news, tab_gbs, tab_qsofa, tab_news_2t, tab_gbs_2t = st.tabs([
-    "NEWS (1T)", "GBS (1T)", "qSOFA (1T)", "NEWS (2T)", "GBS (2T)"
+tab_news, tab_gbs, tab_qsofa, tab_news_2t, tab_gbs_2t, tab_qsofa_2t = st.tabs([
+    "NEWS (1T)", "GBS (1T)", "qSOFA (1T)", "NEWS (2T)", "GBS (2T)", "qSOFA (2T)"
 ])
+with tab_qsofa_2t:
+    st.subheader("Model Output: Postoperative Sepsis (Dual Thresholds)")
+    try:
+        df = load_confusion_data("qsofa_scores.csv")
+        metrics_df = compute_all_metrics(df)
+
+        # --- Dual Threshold selection (Box 1) ---
+        st.markdown("### Dual Threshold Selection")
+        with st.container(border=True):
+            st.markdown("**What are dual thresholds?**  \nUsing two thresholds allows you to define three prediction zones: LOW (score < T1), MODERATE (T1 ≤ score < T2), and HIGH (score ≥ T2). This can help with risk stratification and clinical decision-making.")
+            threshold_values = df["Threshold"].sort_values().unique().tolist()
+            step_val = float(threshold_values[1] - threshold_values[0]) if len(threshold_values) > 1 else 0.01
+
+            # Use session state to store t1 and t2 across reruns
+            if "t1_qsofa2t" not in st.session_state:
+                st.session_state.t1_qsofa2t = float(threshold_values[0])
+            if "t2_qsofa2t" not in st.session_state:
+                st.session_state.t2_qsofa2t = float(threshold_values[-1])
+
+            t1 = st.slider(
+                "Choose T1 (Lower Threshold)",
+                min_value=float(min(threshold_values)),
+                max_value=float(max(threshold_values)),
+                value=st.session_state.t1_qsofa2t,
+                step=step_val,
+                key="threshold_qsofa2t_t1"
+            )
+
+            # Adjust t2 only if it's less than t1
+            if st.session_state.t2_qsofa2t < t1:
+                st.session_state.t2_qsofa2t = t1
+
+            t2 = st.slider(
+                "Choose T2 (Upper Threshold)",
+                min_value=float(t1),
+                max_value=float(max(threshold_values)),
+                value=st.session_state.t2_qsofa2t,
+                step=step_val,
+                key="threshold_qsofa2t_t2"
+            )
+
+            # Update session state
+            st.session_state.t1_qsofa2t = t1
+            st.session_state.t2_qsofa2t = t2
+
+        # --- Metrics and plots (Box 2) ---
+        row_t1 = metrics_df[metrics_df["Threshold"] == t1].iloc[0]
+        row_t2 = metrics_df[metrics_df["Threshold"] == t2].iloc[0]
+        col_spacer1, col_metrics, col_roc, col_pr, col_prev, col_spacer2 = st.columns([0.05, 0.35, 0.2, 0.2, 0.2, 0.05])
+        with col_metrics:
+            st.markdown("**Metrics at T1 and T2**")
+            metrics_table = pd.DataFrame({
+                "Metric": metrics_df.columns.tolist()[1:],
+                "T1 Value": [row_t1[m] for m in metrics_df.columns if m != "Threshold"],
+                "T2 Value": [row_t2[m] for m in metrics_df.columns if m != "Threshold"],
+            })
+            st.dataframe(metrics_table, use_container_width=True, hide_index=True, height=270)
+
+        with col_roc:
+            fig_roc = plot_roc_curve(metrics_df, t1, show_selected=False)
+            idx_t2 = metrics_df["Threshold"] == t2
+            ax_roc = fig_roc.axes[0]
+            # Overlay T1 and T2 points, with correct labeling
+            ax_roc.plot(
+                (1 - row_t1["Specificity"]),
+                row_t1["Sensitivity (Recall)"],
+                marker='o', color='#FF7F0E', markersize=5, label="T1"
+            )
+            ax_roc.plot(
+                (1 - row_t2["Specificity"]),
+                row_t2["Sensitivity (Recall)"],
+                marker='o', color='#D62728', markersize=5, label="T2"
+            )
+            ax_roc.legend(fontsize=5)
+            st.pyplot(fig_roc, use_container_width=True)
+
+        with col_pr:
+            fig_pr = plot_pr_curve(metrics_df, t1, df, show_selected=False)
+            ax_pr = fig_pr.axes[0]
+            ax_pr.plot(
+                row_t1["Sensitivity (Recall)"],
+                row_t1["PPV (Precision)"],
+                marker='o', color='#FF7F0E', markersize=5, label="T1"
+            )
+            ax_pr.plot(
+                row_t2["Sensitivity (Recall)"],
+                row_t2["PPV (Precision)"],
+                marker='o', color='#D62728', markersize=5, label="T2"
+            )
+            ax_pr.legend(fontsize=5)
+            st.pyplot(fig_pr, use_container_width=True)
+
+        # Define prediction prevalence for T1 and T2 for the bar plot
+        pred_prev_t1 = row_t1["Prediction Prevalence"]
+        pred_prev_t2 = row_t2["Prediction Prevalence"]
+        with col_prev:
+            fig_prev = plot_prediction_bar(pred_prev_t1, pred_prev_t2)
+            st.pyplot(fig_prev, use_container_width=True)
+
+        # --- Box 2.5: Case Study on Performance (Three Zones) ---
+        st.markdown("### Case Study on Performance: Three Risk Zones")
+        st.markdown("It is the first morning after primary bariatric surgery. Please consider the following model behaviour. For 1000 patients, how are they classified into LOW, MODERATE, and HIGH risk groups?")
+
+        sample_size = 1000
+        pred_prev_t1 = row_t1["Prediction Prevalence"]
+        pred_prev_t2 = row_t2["Prediction Prevalence"]
+        # Prevalence for each zone
+        p_low = 1 - pred_prev_t1
+        p_mod = pred_prev_t1 - pred_prev_t2
+        p_high = pred_prev_t2
+        # For each zone, estimate confusion matrix using differences
+        label_prev = row_t1["Label Prevalence"]
+        # For LOW zone: below T1, use T1 TN/FN rates
+        tn_low = row_t1["Specificity"] * sample_size * (1 - label_prev) * p_low / (p_low + p_mod + p_high) if (p_low + p_mod + p_high) > 0 else 0
+        fn_low = (1 - row_t1["Sensitivity (Recall)"]) * sample_size * label_prev * p_low / (p_low + p_mod + p_high) if (p_low + p_mod + p_high) > 0 else 0
+        fp_low = 0
+        tp_low = 0
+        # For MODERATE zone: between T1 and T2, use difference between T1 and T2
+        # Compute confusion matrix entries for MODERATE as difference
+        tn_mod = (df.loc[df["Threshold"] == t2, "TN"].values[0] - df.loc[df["Threshold"] == t1, "TN"].values[0]) * sample_size / df["TN"].max() if df["TN"].max() > 0 else 0
+        fn_mod = (df.loc[df["Threshold"] == t2, "FN"].values[0] - df.loc[df["Threshold"] == t1, "FN"].values[0]) * sample_size / df["FN"].max() if df["FN"].max() > 0 else 0
+        fp_mod = (df.loc[df["Threshold"] == t2, "FP"].values[0] - df.loc[df["Threshold"] == t1, "FP"].values[0]) * sample_size / df["FP"].max() if df["FP"].max() > 0 else 0
+        tp_mod = (df.loc[df["Threshold"] == t2, "TP"].values[0] - df.loc[df["Threshold"] == t1, "TP"].values[0]) * sample_size / df["TP"].max() if df["TP"].max() > 0 else 0
+        # For HIGH zone: above T2, use T2 TP/FP rates
+        tn_high = 0
+        fn_high = 0
+        fp_high = (1 - row_t2["Specificity"]) * sample_size * (1 - row_t2["Label Prevalence"]) * p_high / (p_low + p_mod + p_high) if (p_low + p_mod + p_high) > 0 else 0
+        tp_high = row_t2["Sensitivity (Recall)"] * sample_size * row_t2["Label Prevalence"] * p_high / (p_low + p_mod + p_high) if (p_low + p_mod + p_high) > 0 else 0
+
+        def figure_block(label, count, color):
+            people = "👤" * min(int(count), 100)
+            return f"**{label} (N={int(round(count))})**\n\n{people}\n\n"
+
+        col_low, col_mod, col_high = st.columns(3)
+        label_term = "sepsis"
+        # LOW
+        with col_low:
+            st.markdown(f"#### Model Labels as <span style='color:green;'>LOW</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", tn_low, "green"), unsafe_allow_html=True)
+            st.markdown("")
+            st.markdown(figure_block(f"Cases with {label_term}", fn_low, "green"), unsafe_allow_html=True)
+        # MODERATE
+        with col_mod:
+            st.markdown(f"#### Model Labels as <span style='color:gold;'>MODERATE</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", tn_mod, "gold"), unsafe_allow_html=True)
+            st.markdown("")
+            st.markdown(figure_block(f"Cases with {label_term}", fn_mod, "gold"), unsafe_allow_html=True)
+        # HIGH
+        with col_high:
+            st.markdown(f"#### Model Labels as <span style='color:#800020;'>HIGH</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", fp_high, "#800020"), unsafe_allow_html=True)
+            st.markdown("")
+            st.markdown(figure_block(f"Cases with {label_term}", tp_high, "#800020"), unsafe_allow_html=True)
+
+        # --- Box 3: About Sepsis ---
+        st.markdown("### About Postoperative Sepsis")
+        st.markdown("""
+Sepsis is a life-threatening response to infection that can occur after surgery.
+Early identification using predictive models is critical to initiate timely treatment.
+
+This model uses physiological and lab data to anticipate sepsis onset based on trends in early recovery.
+""")
+
+    except FileNotFoundError:
+        st.error("Missing file: ./data/qsofa_scores.csv")
 # NEWS (2T) Tab
 with tab_news_2t:
     st.subheader("Model Output: Postoperative Sepsis (Dual Thresholds)")
