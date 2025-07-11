@@ -319,7 +319,7 @@ with tab_qsofa_2t:
         tp_high = row_t2["Sensitivity (Recall)"] * sample_size * row_t2["Label Prevalence"] * p_high / (p_low + p_mod + p_high) if (p_low + p_mod + p_high) > 0 else 0
 
         def figure_block(label, count, color):
-            people = "👤" * min(int(count), 100)
+            people = "👤" * min(int(round(count)), 100)
             return f"**{label} (N={int(round(count))})**\n\n{people}\n\n"
 
         col_low, col_mod, col_high = st.columns(3)
@@ -495,7 +495,7 @@ with tab_news_2t:
         tp_high = row_t2["Sensitivity (Recall)"] * sample_size * row_t2["Label Prevalence"] * p_high / (p_low + p_mod + p_high) if (p_low + p_mod + p_high) > 0 else 0
 
         def figure_block(label, count, color):
-            people = "👤" * min(int(count), 100)
+            people = "👤" * min(int(round(count)), 100)
             return f"**{label} (N={int(round(count))})**\n\n{people}\n\n"
 
         col_low, col_mod, col_high = st.columns(3)
@@ -586,7 +586,7 @@ with tab_news:
         tn = selected_row["Specificity"] * sample_size * (1 - selected_row["Label Prevalence"])
 
         def figure_block(label, count, color):
-            people = "👤" * min(int(count), 100)
+            people = "👤" * min(int(round(count)), 100)
             return f"**{label} (N={int(round(count))})**\n\n{people}\n\n"
 
         col_low, col_high = st.columns(2)
@@ -671,7 +671,7 @@ with tab_qsofa:
         tn = selected_row["Specificity"] * sample_size * (1 - selected_row["Label Prevalence"])
 
         def figure_block(label, count, color):
-            people = "👤" * min(int(count), 100)
+            people = "👤" * min(int(round(count)), 100)
             return f"**{label} (N={int(round(count))})**\n\n{people}\n\n"
 
         col_low, col_high = st.columns(2)
@@ -757,7 +757,7 @@ with tab_gbs:
         tn = selected_row["Specificity"] * sample_size * (1 - selected_row["Label Prevalence"])
 
         def figure_block(label, count, color):
-            people = "👤" * min(int(count), 100)
+            people = "👤" * min(int(round(count)), 100)
             return f"**{label} (N={int(round(count))})**\n\n{people}\n\n"
 
         col_low, col_high = st.columns(2)
@@ -921,7 +921,7 @@ with tab_gbs_2t:
         tp_high = row_t2["Sensitivity (Recall)"] * sample_size * row_t2["Label Prevalence"] * p_high / (p_low + p_mod + p_high) if (p_low + p_mod + p_high) > 0 else 0
 
         def figure_block(label, count, color):
-            people = "👤" * min(int(count), 100)
+            people = "👤" * min(int(round(count)), 100)
             return f"**{label} (N={int(round(count))})**\n\n{people}\n\n"
 
         col_low, col_mod, col_high = st.columns(3)
