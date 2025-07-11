@@ -110,24 +110,59 @@ def plot_pr_curve(metrics_df: pd.DataFrame, selected_threshold: float, df: pd.Da
     ax.legend(fontsize=6)
     return fig
 
-def plot_prediction_bar(row):
-    pred_prev = row["Prediction Prevalence"]
-    fig, ax = plt.subplots(figsize=(0.6, 0.9))
-    # Draw burgundy LOW on bottom, green HIGH on top
-    ax.bar(0, 1 - pred_prev, color='#800020', width=0.5)
-    ax.bar(0, pred_prev, bottom=1 - pred_prev, color='green', width=0.5)
-    # LOW label and percent (bottom)
-    low_y = (1 - pred_prev) / 2
-    ax.text(0, low_y, "LOW", ha='center', va='center', fontsize=5, color='white')
-    ax.text(0.6, low_y, f"{(1 - pred_prev)*100:.1f}%", ha='left', va='center', fontsize=5, color='#800020')
-    # HIGH label and percent (top)
-    high_y = 1 - (pred_prev / 2)
-    ax.text(0, high_y, "HIGH", ha='center', va='center', fontsize=5, color='white')
-    ax.text(0.6, high_y, f"{pred_prev*100:.1f}%", ha='left', va='center', fontsize=5, color='green')
-    ax.set_xlim(-0.5, 0.8)
-    ax.set_ylim(0, 1)
-    ax.axis("off")
-    return fig
+def plot_prediction_bar(*args, **kwargs):
+    """
+    Plot a vertical bar showing prediction prevalence zones.
+    If called with a single row (legacy), plot LOW/HIGH only.
+    If called with two values (pred_prev_t1, pred_prev_t2), plot LOW/MODERATE/HIGH.
+    """
+    if len(args) == 1 and isinstance(args[0], dict):
+        # Legacy: single row, two zones
+        row = args[0]
+        pred_prev = row["Prediction Prevalence"]
+        fig, ax = plt.subplots(figsize=(0.6, 0.9))
+        ax.bar(0, 1 - pred_prev, color='#800020', width=0.5)
+        ax.bar(0, pred_prev, bottom=1 - pred_prev, color='green', width=0.5)
+        low_y = (1 - pred_prev) / 2
+        ax.text(0, low_y, "LOW", ha='center', va='center', fontsize=5, color='white')
+        ax.text(0.6, low_y, f"{(1 - pred_prev)*100:.1f}%", ha='left', va='center', fontsize=5, color='#800020')
+        high_y = 1 - (pred_prev / 2)
+        ax.text(0, high_y, "HIGH", ha='center', va='center', fontsize=5, color='white')
+        ax.text(0.6, high_y, f"{pred_prev*100:.1f}%", ha='left', va='center', fontsize=5, color='green')
+        ax.set_xlim(-0.5, 0.8)
+        ax.set_ylim(0, 1)
+        ax.axis("off")
+        return fig
+    elif len(args) == 2:
+        # New: dual threshold, three zones
+        pred_prev_t1, pred_prev_t2 = args
+        fig, ax = plt.subplots(figsize=(0.6, 0.9))
+        # Calculate zone heights
+        low_val = 1 - pred_prev_t1
+        mod_val = pred_prev_t1 - pred_prev_t2
+        high_val = pred_prev_t2
+        # Draw bars
+        ax.bar(0, low_val, color='#800020', width=0.5, label="LOW")
+        ax.bar(0, mod_val, bottom=low_val, color='gold', width=0.5, label="MODERATE")
+        ax.bar(0, high_val, bottom=low_val + mod_val, color='green', width=0.5, label="HIGH")
+        # LOW label
+        low_y = low_val / 2
+        ax.text(0, low_y, "LOW", ha='center', va='center', fontsize=5, color='white')
+        ax.text(0.6, low_y, f"{low_val*100:.1f}%", ha='left', va='center', fontsize=5, color='#800020')
+        # MODERATE label
+        mod_y = low_val + (mod_val / 2)
+        ax.text(0, mod_y, "MODERATE", ha='center', va='center', fontsize=5, color='black')
+        ax.text(0.6, mod_y, f"{mod_val*100:.1f}%", ha='left', va='center', fontsize=5, color='gold')
+        # HIGH label
+        high_y = low_val + mod_val + (high_val / 2)
+        ax.text(0, high_y, "HIGH", ha='center', va='center', fontsize=5, color='white')
+        ax.text(0.6, high_y, f"{high_val*100:.1f}%", ha='left', va='center', fontsize=5, color='green')
+        ax.set_xlim(-0.5, 0.8)
+        ax.set_ylim(0, 1)
+        ax.axis("off")
+        return fig
+    else:
+        raise ValueError("Invalid arguments for plot_prediction_bar")
 
 # ----------------------------
 # Streamlit App Layout
@@ -203,31 +238,38 @@ with tab_news_2t:
             fig_roc = plot_roc_curve(metrics_df, t1)
             idx_t2 = metrics_df["Threshold"] == t2
             ax_roc = fig_roc.axes[0]
+            # Overlay T1 and T2 points, with correct labeling
             ax_roc.plot(
-                (1 - metrics_df["Specificity"][idx_t2]),
-                metrics_df["Sensitivity (Recall)"][idx_t2],
+                (1 - row_t1["Specificity"]),
+                row_t1["Sensitivity (Recall)"],
+                marker='o', color='blue', markersize=5, label="T1"
+            )
+            ax_roc.plot(
+                (1 - row_t2["Specificity"]),
+                row_t2["Sensitivity (Recall)"],
                 marker='o', color='purple', markersize=5, label="T2"
             )
-            handles, labels = ax_roc.get_legend_handles_labels()
-            if "T2" not in labels:
-                ax_roc.legend(fontsize=5)
+            ax_roc.legend(fontsize=5)
             st.pyplot(fig_roc, use_container_width=True)
 
         with col_pr:
             fig_pr = plot_pr_curve(metrics_df, t1, df)
             ax_pr = fig_pr.axes[0]
             ax_pr.plot(
-                metrics_df["Sensitivity (Recall)"][idx_t2],
-                metrics_df["PPV (Precision)"][idx_t2],
+                row_t1["Sensitivity (Recall)"],
+                row_t1["PPV (Precision)"],
+                marker='o', color='blue', markersize=5, label="T1"
+            )
+            ax_pr.plot(
+                row_t2["Sensitivity (Recall)"],
+                row_t2["PPV (Precision)"],
                 marker='o', color='purple', markersize=5, label="T2"
             )
-            handles, labels = ax_pr.get_legend_handles_labels()
-            if "T2" not in labels:
-                ax_pr.legend(fontsize=5)
+            ax_pr.legend(fontsize=5)
             st.pyplot(fig_pr, use_container_width=True)
 
         with col_prev:
-            fig_prev = plot_prediction_bar(row_t1)
+            fig_prev = plot_prediction_bar(pred_prev_t1, pred_prev_t2)
             st.pyplot(fig_prev, use_container_width=True)
 
         # --- Box 2.5: Case Study on Performance (Three Zones) ---
