@@ -268,6 +268,9 @@ with tab_news_2t:
             ax_pr.legend(fontsize=5)
             st.pyplot(fig_pr, use_container_width=True)
 
+        # Define prediction prevalence for T1 and T2 for the bar plot
+        pred_prev_t1 = row_t1["Prediction Prevalence"]
+        pred_prev_t2 = row_t2["Prediction Prevalence"]
         with col_prev:
             fig_prev = plot_prediction_bar(pred_prev_t1, pred_prev_t2)
             st.pyplot(fig_prev, use_container_width=True)
