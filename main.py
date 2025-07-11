@@ -96,22 +96,15 @@ def plot_pr_curve(metrics_df: pd.DataFrame):
 st.set_page_config(page_title="Postoperative Predictive Performance Visualization", layout="wide")
 st.title("Postoperative Predictive Performance Visualization")
 
-tabs = {
-    "Postoperative Sepsis": "news_scores.csv",
-    "Postoperative Bleeding": "gbs_scores.csv"
-}
+# Create tabs
+tab_sepsis, tab_bleeding = st.tabs(["Postoperative Sepsis", "Postoperative Bleeding"])
 
-for label, filename in tabs.items():
-    with st.tab(label):
-        st.subheader(f"Model Output: {label}")
-        try:
-            df = load_confusion_data(filename)
-        except FileNotFoundError:
-            st.error(f"Could not find file './data/{filename}'")
-            continue
-
+# Sepsis Tab
+with tab_sepsis:
+    st.subheader("Model Output: Postoperative Sepsis")
+    try:
+        df = load_confusion_data("news_scores.csv")
         metrics_df = compute_all_metrics(df)
-
         st.markdown("#### Classification Metrics by Threshold")
         st.dataframe(metrics_df.round(3), use_container_width=True)
 
@@ -120,3 +113,24 @@ for label, filename in tabs.items():
             st.pyplot(plot_roc_curve(metrics_df))
         with col2:
             st.pyplot(plot_pr_curve(metrics_df))
+
+    except FileNotFoundError:
+        st.error("Missing file: ./data/news_scores.csv")
+
+# Bleeding Tab
+with tab_bleeding:
+    st.subheader("Model Output: Postoperative Bleeding")
+    try:
+        df = load_confusion_data("gbs_scores.csv")
+        metrics_df = compute_all_metrics(df)
+        st.markdown("#### Classification Metrics by Threshold")
+        st.dataframe(metrics_df.round(3), use_container_width=True)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.pyplot(plot_roc_curve(metrics_df))
+        with col2:
+            st.pyplot(plot_pr_curve(metrics_df))
+
+    except FileNotFoundError:
+        st.error("Missing file: ./data/gbs_scores.csv")
