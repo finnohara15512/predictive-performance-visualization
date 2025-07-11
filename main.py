@@ -100,12 +100,7 @@ def plot_pr_curve(metrics_df: pd.DataFrame, selected_threshold: float, df: pd.Da
         metrics_df["PPV (Precision)"][selected_idx],
         'ro', label="Selected Threshold"
     )
-    # Prevalence bar
-    try:
-        prevalence = df["TP"].sum() / (df["TP"].sum() + df["FN"].sum())
-        ax.axhline(y=prevalence, color='gray', linestyle='--', linewidth=0.8, label="Prevalence")
-    except Exception:
-        pass
+    # Random classifier line
     ax.axhline(y=0.5, color='gray', linestyle='--', linewidth=0.8, label="Random Classifier")
     ax.set_xlabel("Recall", fontsize=6)
     ax.set_ylabel("Precision", fontsize=6)
