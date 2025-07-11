@@ -117,13 +117,16 @@ def plot_pr_curve(metrics_df: pd.DataFrame, selected_threshold: float, df: pd.Da
 
 def plot_prediction_bar(row):
     pred_prev = row["Prediction Prevalence"]
-    fig, ax = plt.subplots(figsize=(0.6, 2.5))
-    ax.bar(0, pred_prev, color='green', width=0.5)
-    ax.bar(0, 1 - pred_prev, bottom=pred_prev, color='lightcoral', width=0.5)
-    ax.text(0, pred_prev / 2, "HIGH", ha='center', va='center', fontsize=7, color='white')
-    ax.text(0, pred_prev + (1 - pred_prev) / 2, "LOW", ha='center', va='center', fontsize=7, color='black')
-    ax.text(0, pred_prev + 0.02, f"{pred_prev*100:.1f}%", ha='center', va='bottom', fontsize=6)
-    ax.text(0, pred_prev - 0.02, f"{(1 - pred_prev)*100:.1f}%", ha='center', va='top', fontsize=6)
+    fig, ax = plt.subplots(figsize=(0.6, 2.0))
+    # Draw burgundy LOW on bottom, green HIGH on top
+    ax.bar(0, 1 - pred_prev, color='#800020', width=0.5)
+    ax.bar(0, pred_prev, bottom=1 - pred_prev, color='green', width=0.5)
+    # LOW label and percent (bottom)
+    ax.text(0, (1 - pred_prev) / 2, "LOW", ha='center', va='center', fontsize=5, color='white')
+    ax.text(0, (1 - pred_prev) / 2 - 0.05, f"{(1 - pred_prev)*100:.1f}%", ha='center', va='top', fontsize=5)
+    # HIGH label and percent (top)
+    ax.text(0, 1 - (pred_prev / 2), "HIGH", ha='center', va='center', fontsize=5, color='white')
+    ax.text(0, 1 - (pred_prev / 2) - 0.05, f"{pred_prev*100:.1f}%", ha='center', va='top', fontsize=5)
     ax.set_xlim(-0.5, 0.5)
     ax.set_ylim(0, 1)
     ax.axis("off")
