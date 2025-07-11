@@ -175,8 +175,8 @@ st.set_page_config(page_title="Postoperative Predictive Performance Visualizatio
 st.title("Postoperative Predictive Performance Visualization")
 
 # Create tabs
-tab_news, tab_gbs, tab_news_custom, tab_gbs_custom, tab_qsofa, tab_news_2t = st.tabs([
-    "NEWS (1T)", "GBS (1T)", "Sepsis Custom (1T)", "Bleeding Custom (1T)", "qSOFA (1T)", "NEWS (2T)"
+tab_news, tab_gbs, tab_qsofa, tab_news_2t, tab_gbs_2t = st.tabs([
+    "NEWS (1T)", "GBS (1T)", "qSOFA (1T)", "NEWS (2T)", "GBS (2T)"
 ])
 # NEWS (2T) Tab
 with tab_news_2t:
