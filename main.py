@@ -189,47 +189,54 @@ with tab_news_2t:
         # --- Metrics and plots (Box 2) ---
         row_t1 = metrics_df[metrics_df["Threshold"] == t1].iloc[0]
         row_t2 = metrics_df[metrics_df["Threshold"] == t2].iloc[0]
-        col_l, col_r = st.columns([0.45, 0.55])
-        with col_l:
+        col_spacer1, col_metrics, col_roc, col_pr, col_prev, col_spacer2 = st.columns([0.15, 0.2, 0.2, 0.2, 0.2, 0.15])
+        with col_metrics:
             st.markdown("**Metrics at T1 and T2**")
             metrics_table = pd.DataFrame({
-                "Metric": metrics_df.columns.tolist()[1:],  # exclude Threshold
+                "Metric": metrics_df.columns.tolist()[1:],
                 "T1 Value": [row_t1[m] for m in metrics_df.columns if m != "Threshold"],
                 "T2 Value": [row_t2[m] for m in metrics_df.columns if m != "Threshold"],
             })
-            st.dataframe(metrics_table, use_container_width=True, hide_index=True)
+            st.dataframe(metrics_table, use_container_width=True, hide_index=True, height=270)
 
-        with col_r:
+        with col_roc:
             fig_roc = plot_roc_curve(metrics_df, t1)
             idx_t2 = metrics_df["Threshold"] == t2
             ax_roc = fig_roc.axes[0]
             ax_roc.plot(
                 (1 - metrics_df["Specificity"][idx_t2]),
                 metrics_df["Sensitivity (Recall)"][idx_t2],
-                marker='o', color='purple', markersize=7, label="T2"
+                marker='o', color='purple', markersize=5, label="T2"
             )
             handles, labels = ax_roc.get_legend_handles_labels()
             if "T2" not in labels:
-                ax_roc.legend(fontsize=6)
-            st.pyplot(fig_roc)
+                ax_roc.legend(fontsize=5)
+            st.pyplot(fig_roc, use_container_width=True)
 
+        with col_pr:
             fig_pr = plot_pr_curve(metrics_df, t1, df)
             ax_pr = fig_pr.axes[0]
             ax_pr.plot(
                 metrics_df["Sensitivity (Recall)"][idx_t2],
                 metrics_df["PPV (Precision)"][idx_t2],
-                marker='o', color='purple', markersize=7, label="T2"
+                marker='o', color='purple', markersize=5, label="T2"
             )
             handles, labels = ax_pr.get_legend_handles_labels()
             if "T2" not in labels:
-                ax_pr.legend(fontsize=6)
-            st.pyplot(fig_pr)
+                ax_pr.legend(fontsize=5)
+            st.pyplot(fig_pr, use_container_width=True)
+
+        with col_prev:
+            fig_prev = plot_prediction_bar(row_t1)
+            st.pyplot(fig_prev, use_container_width=True)
 
         # --- Box 2.5: Case Study on Performance (Three Zones) ---
         st.markdown("### Case Study on Performance: Three Risk Zones")
         st.markdown("It is the first morning after primary bariatric surgery. Please consider the following model behaviour. For 1000 patients, how are they classified into LOW, MODERATE, and HIGH risk groups?")
 
         sample_size = 1000
+        pred_prev_t1 = row_t1["Prediction Prevalence"]
+        pred_prev_t2 = row_t2["Prediction Prevalence"]
         # Prevalence for each zone
         p_low = 1 - pred_prev_t1
         p_mod = pred_prev_t1 - pred_prev_t2
