@@ -74,12 +74,7 @@ def plot_roc_curve(metrics_df: pd.DataFrame, selected_threshold: float):
     fpr = 1 - metrics_df["Specificity"]
     fig, ax = plt.subplots(figsize=(2.5, 2.5))
     ax.plot(fpr, tpr, marker="o")
-    selected_idx = metrics_df["Threshold"] == selected_threshold
-    ax.plot(
-        (1 - metrics_df["Specificity"][selected_idx]),
-        metrics_df["Sensitivity (Recall)"][selected_idx],
-        'ro', label="Selected Threshold"
-    )
+    # Removed red dot for Selected Threshold
     ax.plot([0, 1], [0, 1], linestyle='--', color='gray', linewidth=0.8, label='Random Classifier')
     ax.set_xlabel("1 - Specificity (False Positive Rate)", fontsize=6)
     ax.set_ylabel("Sensitivity (True Positive Rate)", fontsize=6)
@@ -94,12 +89,7 @@ def plot_pr_curve(metrics_df: pd.DataFrame, selected_threshold: float, df: pd.Da
     precision = metrics_df["PPV (Precision)"]
     fig, ax = plt.subplots(figsize=(2.5, 2.5))
     ax.plot(recall, precision, marker="o")
-    selected_idx = metrics_df["Threshold"] == selected_threshold
-    ax.plot(
-        metrics_df["Sensitivity (Recall)"][selected_idx],
-        metrics_df["PPV (Precision)"][selected_idx],
-        'ro', label="Selected Threshold"
-    )
+    # Removed red dot for Selected Threshold
     # Random classifier line
     ax.axhline(y=0.5, color='gray', linestyle='--', linewidth=0.8, label="Random Classifier")
     ax.set_xlabel("Recall", fontsize=6)
@@ -224,7 +214,7 @@ with tab_news_2t:
         # --- Metrics and plots (Box 2) ---
         row_t1 = metrics_df[metrics_df["Threshold"] == t1].iloc[0]
         row_t2 = metrics_df[metrics_df["Threshold"] == t2].iloc[0]
-        col_spacer1, col_metrics, col_roc, col_pr, col_prev, col_spacer2 = st.columns([0.15, 0.2, 0.2, 0.2, 0.2, 0.15])
+        col_spacer1, col_metrics, col_roc, col_pr, col_prev, col_spacer2 = st.columns([0.05, 0.35, 0.2, 0.2, 0.2, 0.05])
         with col_metrics:
             st.markdown("**Metrics at T1 and T2**")
             metrics_table = pd.DataFrame({
@@ -242,12 +232,12 @@ with tab_news_2t:
             ax_roc.plot(
                 (1 - row_t1["Specificity"]),
                 row_t1["Sensitivity (Recall)"],
-                marker='o', color='blue', markersize=5, label="T1"
+                marker='o', color='#FF7F0E', markersize=5, label="T1"
             )
             ax_roc.plot(
                 (1 - row_t2["Specificity"]),
                 row_t2["Sensitivity (Recall)"],
-                marker='o', color='purple', markersize=5, label="T2"
+                marker='o', color='#D62728', markersize=5, label="T2"
             )
             ax_roc.legend(fontsize=5)
             st.pyplot(fig_roc, use_container_width=True)
@@ -258,12 +248,12 @@ with tab_news_2t:
             ax_pr.plot(
                 row_t1["Sensitivity (Recall)"],
                 row_t1["PPV (Precision)"],
-                marker='o', color='blue', markersize=5, label="T1"
+                marker='o', color='#FF7F0E', markersize=5, label="T1"
             )
             ax_pr.plot(
                 row_t2["Sensitivity (Recall)"],
                 row_t2["PPV (Precision)"],
-                marker='o', color='purple', markersize=5, label="T2"
+                marker='o', color='#D62728', markersize=5, label="T2"
             )
             ax_pr.legend(fontsize=5)
             st.pyplot(fig_pr, use_container_width=True)
