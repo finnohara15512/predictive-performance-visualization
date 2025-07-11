@@ -106,7 +106,7 @@ def plot_prediction_bar(*args, **kwargs):
     If called with a single row (legacy), plot LOW/HIGH only.
     If called with two values (pred_prev_t1, pred_prev_t2), plot LOW/MODERATE/HIGH.
     """
-    if len(args) == 1 and isinstance(args[0], dict):
+    if len(args) == 1 and isinstance(args[0], (dict, pd.Series)):
         # Legacy: single row, two zones
         row = args[0]
         pred_prev = row["Prediction Prevalence"]
