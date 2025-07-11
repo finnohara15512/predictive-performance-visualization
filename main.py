@@ -153,22 +153,38 @@ with tab_news_2t:
             st.markdown("**What are dual thresholds?**  \nUsing two thresholds allows you to define three prediction zones: LOW (score < T1), MODERATE (T1 ≤ score < T2), and HIGH (score ≥ T2). This can help with risk stratification and clinical decision-making.")
             threshold_values = df["Threshold"].sort_values().unique().tolist()
             step_val = float(threshold_values[1] - threshold_values[0]) if len(threshold_values) > 1 else 0.01
+
+            # Use session state to store t1 and t2 across reruns
+            if "t1_news2t" not in st.session_state:
+                st.session_state.t1_news2t = float(threshold_values[0])
+            if "t2_news2t" not in st.session_state:
+                st.session_state.t2_news2t = float(threshold_values[-1])
+
             t1 = st.slider(
                 "Choose T1 (Lower Threshold)",
                 min_value=float(min(threshold_values)),
                 max_value=float(max(threshold_values)),
-                value=float(threshold_values[0]),
+                value=st.session_state.t1_news2t,
                 step=step_val,
                 key="threshold_news2t_t1"
             )
+
+            # Adjust t2 only if it's less than t1
+            if st.session_state.t2_news2t < t1:
+                st.session_state.t2_news2t = t1
+
             t2 = st.slider(
                 "Choose T2 (Upper Threshold)",
                 min_value=float(t1),
                 max_value=float(max(threshold_values)),
-                value=max(float(t1), float(threshold_values[-1])),
+                value=st.session_state.t2_news2t,
                 step=step_val,
                 key="threshold_news2t_t2"
             )
+
+            # Update session state
+            st.session_state.t1_news2t = t1
+            st.session_state.t2_news2t = t2
 
         # --- Metrics and plots (Box 2) ---
         row_t1 = metrics_df[metrics_df["Threshold"] == t1].iloc[0]
