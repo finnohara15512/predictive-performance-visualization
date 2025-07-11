@@ -74,11 +74,13 @@ def plot_roc_curve(metrics_df: pd.DataFrame, selected_threshold: float):
         metrics_df["Sensitivity (Recall)"][selected_idx],
         'ro', label="Selected Threshold"
     )
-    ax.set_xlabel("False Positive Rate", fontsize=6)
-    ax.set_ylabel("True Positive Rate", fontsize=6)
+    ax.plot([0, 1], [0, 1], linestyle='--', color='gray', linewidth=0.8, label='Random Classifier')
+    ax.set_xlabel("1 - Specificity (False Positive Rate)", fontsize=6)
+    ax.set_ylabel("Sensitivity (True Positive Rate)", fontsize=6)
     ax.set_title("ROC Curve", fontsize=8)
     ax.tick_params(labelsize=6)
     ax.grid(True)
+    ax.legend(fontsize=6)
     return fig
 
 def plot_pr_curve(metrics_df: pd.DataFrame, selected_threshold: float, df: pd.DataFrame):
@@ -98,11 +100,13 @@ def plot_pr_curve(metrics_df: pd.DataFrame, selected_threshold: float, df: pd.Da
         ax.axhline(y=prevalence, color='gray', linestyle='--', linewidth=0.8, label="Prevalence")
     except Exception:
         pass
+    ax.axhline(y=0.5, color='gray', linestyle='--', linewidth=0.8, label="Random Classifier")
     ax.set_xlabel("Recall", fontsize=6)
     ax.set_ylabel("Precision", fontsize=6)
     ax.set_title("Precision-Recall Curve", fontsize=8)
     ax.tick_params(labelsize=6)
     ax.grid(True)
+    ax.legend(fontsize=6)
     return fig
 
 # ----------------------------
@@ -147,8 +151,11 @@ with tab_sepsis:
         with col_m:
             fig_roc = plot_roc_curve(metrics_df, selected_threshold)
             fig_pr = plot_pr_curve(metrics_df, selected_threshold, df)
-            st.pyplot(fig_roc)
-            st.pyplot(fig_pr)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.pyplot(fig_roc)
+            with col2:
+                st.pyplot(fig_pr)
 
         # --- Box 3: About Sepsis ---
         st.markdown("### About Postoperative Sepsis")
@@ -194,8 +201,11 @@ with tab_bleeding:
         with col_m:
             fig_roc = plot_roc_curve(metrics_df, selected_threshold)
             fig_pr = plot_pr_curve(metrics_df, selected_threshold, df)
-            st.pyplot(fig_roc)
-            st.pyplot(fig_pr)
+            col1, col2 = st.columns(2)
+            with col1:
+                st.pyplot(fig_roc)
+            with col2:
+                st.pyplot(fig_pr)
 
         # --- Box 3: About Bleeding ---
         st.markdown("### About Postoperative Bleeding")
