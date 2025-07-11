@@ -187,6 +187,36 @@ with tab_news:
             fig_prev = plot_prediction_bar(selected_row)
             st.pyplot(fig_prev)
 
+        # --- Box 2.5: Case Study on Performance ---
+        st.markdown("### Case Study on Performance")
+        st.markdown("It is the first morning after primary bariatric surgery. Please consider the following model behaviour. For 1000 patients...")
+
+        sample_size = 1000
+        tp = selected_row["Sensitivity (Recall)"] * sample_size * selected_row["Label Prevalence"]
+        fn = (1 - selected_row["Sensitivity (Recall)"]) * sample_size * selected_row["Label Prevalence"]
+        fp = (1 - selected_row["Specificity"]) * sample_size * (1 - selected_row["Label Prevalence"])
+        tn = selected_row["Specificity"] * sample_size * (1 - selected_row["Label Prevalence"])
+
+        def figure_block(label, count, color):
+            people = "🧍" * min(int(count), 100)
+            return f"**{label} (N={int(round(count))})**\n\n{people}\n\n"
+
+        col_low, col_high = st.columns(2)
+
+        label_term = "sepsis"
+
+        with col_low:
+            st.markdown(f"#### Model Labels as <span style='color:#800020;'>LOW</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", tn, "#800020"), unsafe_allow_html=True)
+            st.markdown("")
+            st.markdown(figure_block(f"Cases with {label_term}", fn, "#800020"), unsafe_allow_html=True)
+
+        with col_high:
+            st.markdown(f"#### Model Labels as <span style='color:green;'>HIGH</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", fp, "green"), unsafe_allow_html=True)
+            st.markdown("")
+            st.markdown(figure_block(f"Cases with {label_term}", tp, "green"), unsafe_allow_html=True)
+
         # --- Box 3: About Sepsis ---
         st.markdown("### About Postoperative Sepsis")
         st.markdown("""
@@ -241,6 +271,36 @@ with tab_gbs:
         with col_r:
             fig_prev = plot_prediction_bar(selected_row)
             st.pyplot(fig_prev)
+
+        # --- Box 2.5: Case Study on Performance ---
+        st.markdown("### Case Study on Performance")
+        st.markdown("It is the first morning after primary bariatric surgery. Please consider the following model behaviour. For 1000 patients...")
+
+        sample_size = 1000
+        tp = selected_row["Sensitivity (Recall)"] * sample_size * selected_row["Label Prevalence"]
+        fn = (1 - selected_row["Sensitivity (Recall)"]) * sample_size * selected_row["Label Prevalence"]
+        fp = (1 - selected_row["Specificity"]) * sample_size * (1 - selected_row["Label Prevalence"])
+        tn = selected_row["Specificity"] * sample_size * (1 - selected_row["Label Prevalence"])
+
+        def figure_block(label, count, color):
+            people = "🧍" * min(int(count), 100)
+            return f"**{label} (N={int(round(count))})**\n\n{people}\n\n"
+
+        col_low, col_high = st.columns(2)
+
+        label_term = "bleeding"
+
+        with col_low:
+            st.markdown(f"#### Model Labels as <span style='color:#800020;'>LOW</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", tn, "#800020"), unsafe_allow_html=True)
+            st.markdown("")
+            st.markdown(figure_block(f"Cases with {label_term}", fn, "#800020"), unsafe_allow_html=True)
+
+        with col_high:
+            st.markdown(f"#### Model Labels as <span style='color:green;'>HIGH</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", fp, "green"), unsafe_allow_html=True)
+            st.markdown("")
+            st.markdown(figure_block(f"Cases with {label_term}", tp, "green"), unsafe_allow_html=True)
 
         # --- Box 3: About Bleeding ---
         st.markdown("### About Postoperative Bleeding")
@@ -297,6 +357,36 @@ with tab_news_custom:
             fig_prev = plot_prediction_bar(selected_row)
             st.pyplot(fig_prev)
 
+        # --- Box 2.5: Case Study on Performance ---
+        st.markdown("### Case Study on Performance")
+        st.markdown("It is the first morning after primary bariatric surgery. Please consider the following model behaviour. For 1000 patients...")
+
+        sample_size = 1000
+        tp = selected_row["Sensitivity (Recall)"] * sample_size * selected_row["Label Prevalence"]
+        fn = (1 - selected_row["Sensitivity (Recall)"]) * sample_size * selected_row["Label Prevalence"]
+        fp = (1 - selected_row["Specificity"]) * sample_size * (1 - selected_row["Label Prevalence"])
+        tn = selected_row["Specificity"] * sample_size * (1 - selected_row["Label Prevalence"])
+
+        def figure_block(label, count, color):
+            people = "🧍" * min(int(count), 100)
+            return f"**{label} (N={int(round(count))})**\n\n{people}\n\n"
+
+        col_low, col_high = st.columns(2)
+
+        label_term = "sepsis"
+
+        with col_low:
+            st.markdown(f"#### Model Labels as <span style='color:#800020;'>LOW</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", tn, "#800020"), unsafe_allow_html=True)
+            st.markdown("")
+            st.markdown(figure_block(f"Cases with {label_term}", fn, "#800020"), unsafe_allow_html=True)
+
+        with col_high:
+            st.markdown(f"#### Model Labels as <span style='color:green;'>HIGH</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", fp, "green"), unsafe_allow_html=True)
+            st.markdown("")
+            st.markdown(figure_block(f"Cases with {label_term}", tp, "green"), unsafe_allow_html=True)
+
         # --- Box 3: About Sepsis ---
         st.markdown("### About Postoperative Sepsis")
         st.markdown("""
@@ -351,6 +441,36 @@ with tab_gbs_custom:
         with col_r:
             fig_prev = plot_prediction_bar(selected_row)
             st.pyplot(fig_prev)
+
+        # --- Box 2.5: Case Study on Performance ---
+        st.markdown("### Case Study on Performance")
+        st.markdown("It is the first morning after primary bariatric surgery. Please consider the following model behaviour. For 1000 patients...")
+
+        sample_size = 1000
+        tp = selected_row["Sensitivity (Recall)"] * sample_size * selected_row["Label Prevalence"]
+        fn = (1 - selected_row["Sensitivity (Recall)"]) * sample_size * selected_row["Label Prevalence"]
+        fp = (1 - selected_row["Specificity"]) * sample_size * (1 - selected_row["Label Prevalence"])
+        tn = selected_row["Specificity"] * sample_size * (1 - selected_row["Label Prevalence"])
+
+        def figure_block(label, count, color):
+            people = "🧍" * min(int(count), 100)
+            return f"**{label} (N={int(round(count))})**\n\n{people}\n\n"
+
+        col_low, col_high = st.columns(2)
+
+        label_term = "bleeding"
+
+        with col_low:
+            st.markdown(f"#### Model Labels as <span style='color:#800020;'>LOW</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", tn, "#800020"), unsafe_allow_html=True)
+            st.markdown("")
+            st.markdown(figure_block(f"Cases with {label_term}", fn, "#800020"), unsafe_allow_html=True)
+
+        with col_high:
+            st.markdown(f"#### Model Labels as <span style='color:green;'>HIGH</span>", unsafe_allow_html=True)
+            st.markdown(figure_block(f"Cases without {label_term}", fp, "green"), unsafe_allow_html=True)
+            st.markdown("")
+            st.markdown(figure_block(f"Cases with {label_term}", tp, "green"), unsafe_allow_html=True)
 
         # --- Box 3: About Bleeding ---
         st.markdown("### About Postoperative Bleeding")
