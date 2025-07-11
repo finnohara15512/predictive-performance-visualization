@@ -368,7 +368,7 @@ with tab_news_custom:
         tn = selected_row["Specificity"] * sample_size * (1 - selected_row["Label Prevalence"])
 
         def figure_block(label, count, color):
-            people = "🧍" * min(int(count), 100)
+            people = "👤" * min(int(count), 100)
             return f"**{label} (N={int(round(count))})**\n\n{people}\n\n"
 
         col_low, col_high = st.columns(2)
