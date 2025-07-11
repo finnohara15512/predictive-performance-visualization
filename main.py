@@ -63,12 +63,17 @@ def compute_all_metrics(df: pd.DataFrame) -> pd.DataFrame:
 # Plotting utilities
 # ----------------------------
 
-def plot_roc_curve(metrics_df: pd.DataFrame):
+def plot_roc_curve(metrics_df: pd.DataFrame, selected_threshold: float):
     tpr = metrics_df["Sensitivity (Recall)"]
     fpr = 1 - metrics_df["Specificity"]
-
     fig, ax = plt.subplots(figsize=(2.5, 2.5))
     ax.plot(fpr, tpr, marker="o")
+    selected_idx = metrics_df["Threshold"] == selected_threshold
+    ax.plot(
+        (1 - metrics_df["Specificity"][selected_idx]),
+        metrics_df["Sensitivity (Recall)"][selected_idx],
+        'ro', label="Selected Threshold"
+    )
     ax.set_xlabel("False Positive Rate", fontsize=6)
     ax.set_ylabel("True Positive Rate", fontsize=6)
     ax.set_title("ROC Curve", fontsize=8)
@@ -76,12 +81,23 @@ def plot_roc_curve(metrics_df: pd.DataFrame):
     ax.grid(True)
     return fig
 
-def plot_pr_curve(metrics_df: pd.DataFrame):
+def plot_pr_curve(metrics_df: pd.DataFrame, selected_threshold: float, df: pd.DataFrame):
     recall = metrics_df["Sensitivity (Recall)"]
     precision = metrics_df["PPV (Precision)"]
-
     fig, ax = plt.subplots(figsize=(2.5, 2.5))
     ax.plot(recall, precision, marker="o")
+    selected_idx = metrics_df["Threshold"] == selected_threshold
+    ax.plot(
+        metrics_df["Sensitivity (Recall)"][selected_idx],
+        metrics_df["PPV (Precision)"][selected_idx],
+        'ro', label="Selected Threshold"
+    )
+    # Prevalence bar
+    try:
+        prevalence = df["TP"].sum() / (df["TP"].sum() + df["FN"].sum())
+        ax.axhline(y=prevalence, color='gray', linestyle='--', linewidth=0.8, label="Prevalence")
+    except Exception:
+        pass
     ax.set_xlabel("Recall", fontsize=6)
     ax.set_ylabel("Precision", fontsize=6)
     ax.set_title("Precision-Recall Curve", fontsize=8)
@@ -105,14 +121,41 @@ with tab_sepsis:
     try:
         df = load_confusion_data("news_scores.csv")
         metrics_df = compute_all_metrics(df)
-        st.markdown("#### Classification Metrics by Threshold")
-        st.dataframe(metrics_df.round(3), use_container_width=True)
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.pyplot(plot_roc_curve(metrics_df))
-        with col2:
-            st.pyplot(plot_pr_curve(metrics_df))
+        # --- Threshold selection box (Box 1) ---
+        st.markdown("### Threshold Selection")
+        with st.container(border=True):
+            st.markdown("**What is a threshold?**  \nIn classification models, a threshold is the cutoff point at which a predicted probability is converted into a class label. Adjusting this affects the trade-off between sensitivity and specificity.")
+            threshold_values = df["Threshold"].sort_values().unique().tolist()
+            step_val = float(threshold_values[1] - threshold_values[0]) if len(threshold_values) > 1 else 0.01
+            selected_threshold = st.slider(
+                "Choose Threshold",
+                min_value=float(min(threshold_values)),
+                max_value=float(max(threshold_values)),
+                value=float(threshold_values[0]),
+                step=step_val
+            )
+
+        # --- Metrics and plots (Box 2) ---
+        selected_row = metrics_df[metrics_df["Threshold"] == selected_threshold].iloc[0]
+        col_l, col_m, col_r = st.columns([0.3, 0.4, 0.3])
+        with col_l:
+            st.markdown("**Metrics at Selected Threshold**")
+            st.dataframe(pd.DataFrame([selected_row]).round(3), use_container_width=True)
+        with col_m:
+            fig_roc = plot_roc_curve(metrics_df, selected_threshold)
+            fig_pr = plot_pr_curve(metrics_df, selected_threshold, df)
+            st.pyplot(fig_roc)
+            st.pyplot(fig_pr)
+
+        # --- Box 3: About Sepsis ---
+        st.markdown("### About Postoperative Sepsis")
+        st.markdown("""
+Sepsis is a life-threatening response to infection that can occur after surgery.
+Early identification using predictive models is critical to initiate timely treatment.
+
+This model uses physiological and lab data to anticipate sepsis onset based on trends in early recovery.
+""")
 
     except FileNotFoundError:
         st.error("Missing file: ./data/news_scores.csv")
@@ -123,14 +166,41 @@ with tab_bleeding:
     try:
         df = load_confusion_data("gbs_scores.csv")
         metrics_df = compute_all_metrics(df)
-        st.markdown("#### Classification Metrics by Threshold")
-        st.dataframe(metrics_df.round(3), use_container_width=True)
 
-        col1, col2 = st.columns(2)
-        with col1:
-            st.pyplot(plot_roc_curve(metrics_df))
-        with col2:
-            st.pyplot(plot_pr_curve(metrics_df))
+        # --- Threshold selection box (Box 1) ---
+        st.markdown("### Threshold Selection")
+        with st.container(border=True):
+            st.markdown("**What is a threshold?**  \nIn classification models, a threshold is the cutoff point at which a predicted probability is converted into a class label. Adjusting this affects the trade-off between sensitivity and specificity.")
+            threshold_values = df["Threshold"].sort_values().unique().tolist()
+            step_val = float(threshold_values[1] - threshold_values[0]) if len(threshold_values) > 1 else 0.01
+            selected_threshold = st.slider(
+                "Choose Threshold",
+                min_value=float(min(threshold_values)),
+                max_value=float(max(threshold_values)),
+                value=float(threshold_values[0]),
+                step=step_val
+            )
+
+        # --- Metrics and plots (Box 2) ---
+        selected_row = metrics_df[metrics_df["Threshold"] == selected_threshold].iloc[0]
+        col_l, col_m, col_r = st.columns([0.3, 0.4, 0.3])
+        with col_l:
+            st.markdown("**Metrics at Selected Threshold**")
+            st.dataframe(pd.DataFrame([selected_row]).round(3), use_container_width=True)
+        with col_m:
+            fig_roc = plot_roc_curve(metrics_df, selected_threshold)
+            fig_pr = plot_pr_curve(metrics_df, selected_threshold, df)
+            st.pyplot(fig_roc)
+            st.pyplot(fig_pr)
+
+        # --- Box 3: About Bleeding ---
+        st.markdown("### About Postoperative Bleeding")
+        st.markdown("""
+Postoperative bleeding is a serious complication that can lead to reoperation, transfusion, or longer ICU stays.
+Accurate early prediction helps clinicians intervene proactively.
+
+This model leverages vital signs and clinical scores to predict bleeding risk after surgery.
+""")
 
     except FileNotFoundError:
         st.error("Missing file: ./data/gbs_scores.csv")
