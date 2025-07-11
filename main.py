@@ -181,7 +181,8 @@ tab_news, tab_gbs, tab_qsofa, tab_news_2t, tab_gbs_2t, tab_qsofa_2t = st.tabs([
 ])
 with tab_qsofa_2t:
     st.subheader("Model Output: Postoperative Sepsis (Dual Thresholds)")
-    st.markdown("_Generated on **July 11th, 2025** using **PW2** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
+    st.markdown("_Generated on **July 11th, 2025** using **PW14** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
+    st.markdown("There are 3,633 cases included in this dataset.")
     try:
         df = load_confusion_data("qsofa_scores.csv")
         metrics_df = compute_all_metrics(df)
@@ -245,6 +246,7 @@ with tab_qsofa_2t:
                 "T1 Value": [row_t1[m] for m in metrics_df.columns if m != "Threshold"],
                 "T2 Value": [row_t2[m] for m in metrics_df.columns if m != "Threshold"],
             })
+            metrics_table.loc[len(metrics_table.index)] = ["N (Sample Size)", 3633, 3633]
             st.dataframe(metrics_table, use_container_width=True, hide_index=True, height=270)
 
         with col_roc:
@@ -290,7 +292,7 @@ with tab_qsofa_2t:
 
         # --- Box 2.5: Case Study on Performance (Three Zones) ---
         st.markdown("### Case Study on Performance: Three Risk Zones")
-        st.markdown("It is the first morning after primary bariatric surgery. Please consider the following model behaviour. For 1000 patients, how are they classified into LOW, MODERATE, and HIGH risk groups?")
+        st.markdown("It is the first morning after primary bariatric surgery. Please consider the following model behaviour. For 1000 theoretical patients, how are they classified into LOW, MODERATE, and HIGH risk groups?")
 
         sample_size = 1000
         pred_prev_t1 = row_t1["Prediction Prevalence"]
@@ -357,7 +359,8 @@ This model uses physiological and lab data to anticipate sepsis onset based on t
 # NEWS (2T) Tab
 with tab_news_2t:
     st.subheader("Model Output: Postoperative Sepsis (Dual Thresholds)")
-    st.markdown("_Generated on **July 11th, 2025** using **PW2** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
+    st.markdown("_Generated on **July 11th, 2025** using **PW14** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
+    st.markdown("There are 3,633 cases included in this dataset.")
     try:
         df = load_confusion_data("news_scores.csv")
         metrics_df = compute_all_metrics(df)
@@ -421,6 +424,7 @@ with tab_news_2t:
                 "T1 Value": [row_t1[m] for m in metrics_df.columns if m != "Threshold"],
                 "T2 Value": [row_t2[m] for m in metrics_df.columns if m != "Threshold"],
             })
+            metrics_table.loc[len(metrics_table.index)] = ["N (Sample Size)", 3633, 3633]
             st.dataframe(metrics_table, use_container_width=True, hide_index=True, height=270)
 
         with col_roc:
@@ -534,7 +538,8 @@ This model uses physiological and lab data to anticipate sepsis onset based on t
 # NEWS Tab
 with tab_news:
     st.subheader("Model Output: Postoperative Sepsis")
-    st.markdown("_Generated on **July 11th, 2025** using **PW2** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
+    st.markdown("_Generated on **July 11th, 2025** using **PW14** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
+    st.markdown("There are 3,633 cases included in this dataset.")
     try:
         df = load_confusion_data("news_scores.csv")
         metrics_df = compute_all_metrics(df)
@@ -561,6 +566,7 @@ with tab_news:
             st.markdown("**Metrics at Selected Threshold**")
             metrics_table = pd.DataFrame([selected_row]).T.reset_index()
             metrics_table.columns = ["Metric", "Value"]
+            metrics_table.loc[len(metrics_table.index)] = ["N (Sample Size)", 3633]
             st.dataframe(metrics_table, use_container_width=True, hide_index=True)
         with col_m:
             fig_roc = plot_roc_curve(metrics_df, selected_threshold, show_selected=True)
@@ -619,7 +625,8 @@ This model uses physiological and lab data to anticipate sepsis onset based on t
 # qSOFA Tab (duplicate of NEWS, modified)
 with tab_qsofa:
     st.subheader("Model Output: Postoperative Sepsis")
-    st.markdown("_Generated on **July 11th, 2025** using **PW2** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
+    st.markdown("_Generated on **July 11th, 2025** using **PW14** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
+    st.markdown("There are 3,633 cases included in this dataset.")
     try:
         df = load_confusion_data("qsofa_scores.csv")
         metrics_df = compute_all_metrics(df)
@@ -646,6 +653,7 @@ with tab_qsofa:
             st.markdown("**Metrics at Selected Threshold**")
             metrics_table = pd.DataFrame([selected_row]).T.reset_index()
             metrics_table.columns = ["Metric", "Value"]
+            metrics_table.loc[len(metrics_table.index)] = ["N (Sample Size)", 3633]
             st.dataframe(metrics_table, use_container_width=True, hide_index=True)
         with col_m:
             fig_roc = plot_roc_curve(metrics_df, selected_threshold, show_selected=True)
@@ -705,7 +713,8 @@ This model uses physiological and lab data to anticipate sepsis onset based on t
 # GBS Tab
 with tab_gbs:
     st.subheader("Model Output: Postoperative Bleeding")
-    st.markdown("_Generated on **July 11th, 2025** using **PW2** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
+    st.markdown("_Generated on **July 11th, 2025** using **PW14** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
+    st.markdown("There are 3,633 cases included in this dataset.")
     try:
         df = load_confusion_data("gbs_scores.csv")
         metrics_df = compute_all_metrics(df)
@@ -732,6 +741,7 @@ with tab_gbs:
             st.markdown("**Metrics at Selected Threshold**")
             metrics_table = pd.DataFrame([selected_row]).T.reset_index()
             metrics_table.columns = ["Metric", "Value"]
+            metrics_table.loc[len(metrics_table.index)] = ["N (Sample Size)", 3633]
             st.dataframe(metrics_table, use_container_width=True, hide_index=True)
         with col_m:
             fig_roc = plot_roc_curve(metrics_df, selected_threshold, show_selected=True)
@@ -792,7 +802,8 @@ This model leverages vital signs and clinical scores to predict bleeding risk af
 # GBS (2T) Tab
 with tab_gbs_2t:
     st.subheader("Model Output: Postoperative Bleeding (Dual Thresholds)")
-    st.markdown("_Generated on **July 11th, 2025** using **PW2** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
+    st.markdown("_Generated on **July 11th, 2025** using **PW14** model at **POD1.375** for **all bariatric cases (primary and secondary)**._")
+    st.markdown("There are 3,633 cases included in this dataset.")
     try:
         df = load_confusion_data("gbs_scores.csv")
         metrics_df = compute_all_metrics(df)
@@ -847,6 +858,7 @@ with tab_gbs_2t:
                 "T1 Value": [row_t1[m] for m in metrics_df.columns if m != "Threshold"],
                 "T2 Value": [row_t2[m] for m in metrics_df.columns if m != "Threshold"],
             })
+            metrics_table.loc[len(metrics_table.index)] = ["N (Sample Size)", 3633, 3633]
             st.dataframe(metrics_table, use_container_width=True, hide_index=True, height=270)
 
         with col_roc:
