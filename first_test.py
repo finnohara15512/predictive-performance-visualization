@@ -66,7 +66,7 @@ def plot_curves(y_true, y_scores, threshold):
     precision, recall, _ = precision_recall_curve(y_true, y_scores)
 
     # ROC
-    fig_roc, ax_roc = plt.subplots()
+    fig_roc, ax_roc = plt.subplots(figsize=(4.5, 4.5))
     ax_roc.plot(fpr, tpr, label="ROC Curve")
     pred = (y_scores >= threshold).astype(int)
     roc_point = [np.mean(pred[y_true == 0]), np.mean(pred[y_true == 1])]
@@ -77,7 +77,7 @@ def plot_curves(y_true, y_scores, threshold):
     ax_roc.grid(True)
 
     # PR
-    fig_pr, ax_pr = plt.subplots()
+    fig_pr, ax_pr = plt.subplots(figsize=(4.5, 4.5))
     ax_pr.plot(recall, precision, label="PR Curve")
     tp = np.sum((pred == 1) & (y_true == 1))
     fp = np.sum((pred == 1) & (y_true == 0))
@@ -92,19 +92,19 @@ def plot_curves(y_true, y_scores, threshold):
 
     return fig_roc, fig_pr
 
-# ---- Prediction Prevalence Bar ----
+# ---- Prediction Prevalence Bar (correct orientation + size) ----
 def draw_prevalence_bar(pred_prev):
-    fig, ax = plt.subplots(figsize=(1, 4))
+    fig, ax = plt.subplots(figsize=(1.2, 4.5))  # Match ROC/PR height
+    low_pct = 1 - pred_prev
     high_pct = pred_prev
-    low_pct = 1 - high_pct
 
-    ax.bar(0, high_pct, color='green', label='High', width=0.5)
-    ax.bar(0, low_pct, bottom=high_pct, color='lightcoral', label='Low', width=0.5)
+    ax.bar(0, high_pct, color='green', bottom=low_pct, width=0.5)
+    ax.bar(0, low_pct, color='lightcoral', bottom=0, width=0.5)
 
-    ax.text(0, high_pct / 2, f"High\n{high_pct*100:.1f}%", color='white', ha='center', va='center', fontsize=10)
-    ax.text(0, high_pct + low_pct / 2, f"Low\n{low_pct*100:.1f}%", color='white', ha='center', va='center', fontsize=10)
+    ax.text(0, 1 - high_pct / 2, f"High\n{high_pct*100:.1f}%", color='white', ha='center', va='center', fontsize=10)
+    ax.text(0, low_pct / 2, f"Low\n{low_pct*100:.1f}%", color='white', ha='center', va='center', fontsize=10)
 
-    ax.set_xlim(-0.5, 0.5)
+    ax.set_xlim(-0.6, 0.6)
     ax.set_ylim(0, 1)
     ax.axis('off')
     return fig
@@ -127,19 +127,17 @@ for tab, label in zip([tab1, tab2], ["sepsis", "bleeding"]):
 
             threshold = st.slider(f"Select probability threshold for {label} prediction", 0.0, 1.0, 0.5, 0.01)
 
-            # Layout with three columns: ROC, PR, and prevalence bar
             col1, col2, col3 = st.columns([2, 2, 1])
             fig_roc, fig_pr = plot_curves(y_true, y_scores, threshold)
+            pred_prev = np.mean(y_scores >= threshold)
 
             with col1:
                 st.pyplot(fig_roc)
             with col2:
                 st.pyplot(fig_pr)
             with col3:
-                pred_prev = np.mean(y_scores >= threshold)
                 st.pyplot(draw_prevalence_bar(pred_prev))
 
-            # Metrics table
             metrics = compute_metrics(y_true, y_scores, threshold)
             metric_table = pd.DataFrame([
                 {"Metric": k, "Description": metric_descriptions.get(k, ""), "Value": round(v, 3)}
