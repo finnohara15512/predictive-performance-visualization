@@ -189,71 +189,41 @@ with tab_news_2t:
         # --- Metrics and plots (Box 2) ---
         row_t1 = metrics_df[metrics_df["Threshold"] == t1].iloc[0]
         row_t2 = metrics_df[metrics_df["Threshold"] == t2].iloc[0]
-        col_l, col_m, col_r = st.columns([0.3, 0.4, 0.3])
+        col_l, col_r = st.columns([0.45, 0.55])
         with col_l:
-            st.markdown("**Metrics at T1 (Lower Threshold)**")
-            metrics_table1 = pd.DataFrame([row_t1]).T.reset_index()
-            metrics_table1.columns = ["Metric", "Value"]
-            st.dataframe(metrics_table1, use_container_width=True, hide_index=True)
-        with col_m:
-            st.markdown("**Metrics at T2 (Upper Threshold)**")
-            metrics_table2 = pd.DataFrame([row_t2]).T.reset_index()
-            metrics_table2.columns = ["Metric", "Value"]
-            st.dataframe(metrics_table2, use_container_width=True, hide_index=True)
+            st.markdown("**Metrics at T1 and T2**")
+            metrics_table = pd.DataFrame({
+                "Metric": metrics_df.columns.tolist()[1:],  # exclude Threshold
+                "T1 Value": [row_t1[m] for m in metrics_df.columns if m != "Threshold"],
+                "T2 Value": [row_t2[m] for m in metrics_df.columns if m != "Threshold"],
+            })
+            st.dataframe(metrics_table, use_container_width=True, hide_index=True)
+
         with col_r:
-            # Custom prevalence bar showing three segments: LOW, MODERATE, HIGH
-            pred_prev_t1 = row_t1["Prediction Prevalence"]
-            pred_prev_t2 = row_t2["Prediction Prevalence"]
-            # LOW = 1 - pred_prev_t1, MODERATE = pred_prev_t1 - pred_prev_t2, HIGH = pred_prev_t2
-            fig, ax = plt.subplots(figsize=(0.7, 1.2))
-            ax.bar(0, 1 - pred_prev_t1, color='#800020', width=0.5, label="LOW")
-            ax.bar(0, pred_prev_t1 - pred_prev_t2, bottom=1 - pred_prev_t1, color='gold', width=0.5, label="MODERATE")
-            ax.bar(0, pred_prev_t2, bottom=1 - pred_prev_t2, color='green', width=0.5, label="HIGH")
-            # LOW label
-            low_y = (1 - pred_prev_t1) / 2
-            ax.text(0, low_y, "LOW", ha='center', va='center', fontsize=5, color='white')
-            ax.text(0.6, low_y, f"{(1 - pred_prev_t1)*100:.1f}%", ha='left', va='center', fontsize=5, color='#800020')
-            # MODERATE label
-            mod_y = 1 - pred_prev_t1 + (pred_prev_t1 - pred_prev_t2) / 2
-            ax.text(0, mod_y, "MODERATE", ha='center', va='center', fontsize=5, color='black')
-            ax.text(0.6, mod_y, f"{(pred_prev_t1 - pred_prev_t2)*100:.1f}%", ha='left', va='center', fontsize=5, color='gold')
-            # HIGH label
-            high_y = 1 - (pred_prev_t2 / 2)
-            ax.text(0, high_y, "HIGH", ha='center', va='center', fontsize=5, color='white')
-            ax.text(0.6, high_y, f"{(pred_prev_t2)*100:.1f}%", ha='left', va='center', fontsize=5, color='green')
-            ax.set_xlim(-0.5, 0.8)
-            ax.set_ylim(0, 1)
-            ax.axis("off")
-            st.pyplot(fig)
+            fig_roc = plot_roc_curve(metrics_df, t1)
+            idx_t2 = metrics_df["Threshold"] == t2
+            ax_roc = fig_roc.axes[0]
+            ax_roc.plot(
+                (1 - metrics_df["Specificity"][idx_t2]),
+                metrics_df["Sensitivity (Recall)"][idx_t2],
+                marker='o', color='purple', markersize=7, label="T2"
+            )
+            handles, labels = ax_roc.get_legend_handles_labels()
+            if "T2" not in labels:
+                ax_roc.legend(fontsize=6)
+            st.pyplot(fig_roc)
 
-        # --- ROC and PR curves with T1/T2 markers ---
-        st.markdown("#### ROC and Precision-Recall Curves")
-        fig_roc = plot_roc_curve(metrics_df, t1)
-        # Overlay T2 marker
-        ax_roc = fig_roc.axes[0]
-        idx_t2 = metrics_df["Threshold"] == t2
-        ax_roc.plot(
-            (1 - metrics_df["Specificity"][idx_t2]),
-            metrics_df["Sensitivity (Recall)"][idx_t2],
-            marker='o', color='purple', markersize=7, label="T2"
-        )
-        handles, labels = ax_roc.get_legend_handles_labels()
-        if "T2" not in labels:
-            ax_roc.legend(fontsize=6)
-        st.pyplot(fig_roc)
-
-        fig_pr = plot_pr_curve(metrics_df, t1, df)
-        # Overlay T2 marker
-        ax_pr = fig_pr.axes[0]
-        ax_pr.plot(
-            metrics_df["Sensitivity (Recall)"][idx_t2],
-            metrics_df["PPV (Precision)"][idx_t2],
-            marker='o', color='purple', markersize=7, label="T2"
-        )
-        handles, labels = ax_pr.get_legend_handles_labels()
-        if "T2" not in labels:
-            ax_pr.legend(fontsize=6)
-        st.pyplot(fig_pr)
+            fig_pr = plot_pr_curve(metrics_df, t1, df)
+            ax_pr = fig_pr.axes[0]
+            ax_pr.plot(
+                metrics_df["Sensitivity (Recall)"][idx_t2],
+                metrics_df["PPV (Precision)"][idx_t2],
+                marker='o', color='purple', markersize=7, label="T2"
+            )
+            handles, labels = ax_pr.get_legend_handles_labels()
+            if "T2" not in labels:
+                ax_pr.legend(fontsize=6)
+            st.pyplot(fig_pr)
 
         # --- Box 2.5: Case Study on Performance (Three Zones) ---
         st.markdown("### Case Study on Performance: Three Risk Zones")
